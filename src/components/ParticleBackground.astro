@@ -1,0 +1,145 @@
+---
+---
+
+<canvas id="particle-canvas" class="particle-canvas"></canvas>
+
+<style>
+	.particle-canvas {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		z-index: -1;
+		pointer-events: none;
+		opacity: 0.35;
+	}
+</style>
+
+<script is:inline>
+(function () {
+	const canvas = document.getElementById('particle-canvas');
+	if (!canvas) return;
+	const ctx = canvas.getContext('2d');
+	let particles = [];
+	let animationId;
+	let width, height;
+
+	function getThemeColors() {
+		const theme = document.documentElement.getAttribute('data-theme');
+		if (theme === 'latte') {
+			return {
+				particle: 'rgba(136, 57, 239, 0.25)',
+				line: 'rgba(136, 57, 239, 0.06)',
+				nodeGlow: 'rgba(136, 57, 239, 0.4)',
+			};
+		}
+		return {
+			particle: 'rgba(203, 166, 247, 0.35)',
+			line: 'rgba(203, 166, 247, 0.08)',
+			nodeGlow: 'rgba(203, 166, 247, 0.5)',
+		};
+	}
+
+	function resize() {
+		width = canvas.width = window.innerWidth;
+		height = canvas.height = window.innerHeight;
+	}
+
+	function createParticles() {
+		const count = Math.min(Math.floor((width * height) / 18000), 80);
+		particles = [];
+		for (let i = 0; i < count; i++) {
+			particles.push({
+				x: Math.random() * width,
+				y: Math.random() * height,
+				vx: (Math.random() - 0.5) * 0.4,
+				vy: (Math.random() - 0.5) * 0.4,
+				radius: Math.random() * 2 + 1,
+				isNode: Math.random() < 0.15,
+			});
+		}
+	}
+
+	function drawParticle(p, colors) {
+		ctx.beginPath();
+		if (p.isNode) {
+			// Draw a "node" — small square like a circuit node
+			const s = p.radius + 1;
+			ctx.rect(p.x - s / 2, p.y - s / 2, s, s);
+			ctx.fillStyle = colors.nodeGlow;
+			ctx.shadowBlur = 6;
+			ctx.shadowColor = colors.nodeGlow;
+		} else {
+			ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+			ctx.fillStyle = colors.particle;
+			ctx.shadowBlur = 0;
+		}
+		ctx.fill();
+		ctx.shadowBlur = 0;
+	}
+
+	function drawConnections(colors) {
+		const maxDist = 140;
+		for (let i = 0; i < particles.length; i++) {
+			for (let j = i + 1; j < particles.length; j++) {
+				const dx = particles[i].x - particles[j].x;
+				const dy = particles[i].y - particles[j].y;
+				const dist = Math.sqrt(dx * dx + dy * dy);
+				if (dist < maxDist) {
+					const opacity = 1 - dist / maxDist;
+					ctx.beginPath();
+					ctx.moveTo(particles[i].x, particles[i].y);
+					ctx.lineTo(particles[j].x, particles[j].y);
+					ctx.strokeStyle = colors.line.replace('0.08', (0.08 * opacity).toFixed(3)).replace('0.06', (0.06 * opacity).toFixed(3));
+					ctx.lineWidth = 0.5;
+					ctx.stroke();
+				}
+			}
+		}
+	}
+
+	function animate() {
+		ctx.clearRect(0, 0, width, height);
+		const colors = getThemeColors();
+
+		for (const p of particles) {
+			p.x += p.vx;
+			p.y += p.vy;
+
+			// Wrap around edges
+			if (p.x < 0) p.x = width;
+			if (p.x > width) p.x = 0;
+			if (p.y < 0) p.y = height;
+			if (p.y > height) p.y = 0;
+
+			drawParticle(p, colors);
+		}
+
+		drawConnections(colors);
+		animationId = requestAnimationFrame(animate);
+	}
+
+	function init() {
+		resize();
+		createParticles();
+		animate();
+	}
+
+	// Use IntersectionObserver to pause when not visible
+	window.addEventListener('resize', () => {
+		resize();
+		createParticles();
+	});
+
+	// Reduce motion preference
+	if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		init();
+	}
+
+	// Cleanup on page navigation (Astro)
+	document.addEventListener('astro:before-swap', () => {
+		cancelAnimationFrame(animationId);
+	});
+})();
+</script>

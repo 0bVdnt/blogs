@@ -5,6 +5,9 @@ import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
+import LorenzBackground from '../components/LorenzBackground.astro';
+import ParticleBackground from '../components/ParticleBackground.astro';
+import TorusKnotBackground from '../components/TorusKnotBackground.astro';
 
 type Props = CollectionEntry<'blog'>['data'];
 
@@ -20,57 +23,136 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 				max-width: 100%;
 				margin: 0;
 			}
+
 			.hero-image {
 				width: 100%;
+				max-width: 900px;
+				margin: 0 auto 2em;
+				animation: fadeInUp 0.5s ease forwards;
 			}
+
 			.hero-image img {
 				display: block;
-				margin: 0 auto;
-				border-radius: 12px;
-				box-shadow: var(--box-shadow);
+				width: 100%;
+				border-radius: 14px;
+				box-shadow: 0 6px 24px var(--shadow-color);
 			}
+
 			.prose {
 				width: 720px;
 				max-width: calc(100% - 2em);
 				margin: auto;
 				padding: 1em;
-				color: rgb(var(--gray-dark));
+				color: var(--text);
 			}
-			.title {
-				margin-bottom: 1em;
-				padding: 1em 0;
+
+			/* Article header */
+			.article-header {
+				margin-bottom: 2em;
 				text-align: center;
-				line-height: 1;
+				animation: fadeInUp 0.4s ease forwards;
 			}
-			.title h1 {
-				margin: 0 0 0.5em 0;
+
+			.date-info {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.5em;
+				font-family: "JetBrains Mono", monospace;
+				font-size: 0.78em;
+				color: var(--subtext0);
+				background: var(--card-bg);
+				padding: 0.35em 0.9em;
+				border-radius: 6px;
+				border: 1px solid var(--card-border);
+				backdrop-filter: blur(8px);
+				-webkit-backdrop-filter: blur(8px);
+				margin-bottom: 1em;
 			}
-			.date {
-				margin-bottom: 0.5em;
-				color: rgb(var(--gray));
+
+			.date-dot {
+				width: 6px;
+				height: 6px;
+				border-radius: 50%;
+				background: var(--green);
+				animation: glow-pulse 2s ease-in-out infinite;
 			}
+
 			.last-updated-on {
 				font-style: italic;
+				color: var(--overlay1);
+			}
+
+			.article-header h1 {
+				font-size: 2.2em;
+				margin: 0 0 0.3em;
+				background: linear-gradient(135deg, var(--mauve), var(--blue), var(--lavender));
+				background-size: 200% 200%;
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+				background-clip: text;
+				animation: gradient-shift 6s ease infinite;
+			}
+
+			/* Prose content */
+			.prose :global(h2) {
+				margin-top: 2.5em;
+				padding-bottom: 0.3em;
+				border-bottom: 1px solid var(--card-border);
+			}
+
+			.prose :global(h3) { margin-top: 2em; }
+
+			.prose :global(ul),
+			.prose :global(ol) { padding-left: 1.5em; }
+
+			.prose :global(li) { margin-bottom: 0.5em; }
+
+			.prose :global(a) {
+				color: var(--link);
+				text-decoration: none;
+				border-bottom: 1px dashed var(--link);
+				transition: all 0.2s ease;
+			}
+
+			.prose :global(a:hover) {
+				color: var(--link-hover);
+				border-bottom-style: solid;
+			}
+
+			.prose :global(img) {
+				border-radius: 12px;
+				margin: 1.5em 0;
+				box-shadow: 0 4px 16px var(--shadow-color);
+			}
+
+			@media (max-width: 720px) {
+				.article-header h1 { font-size: 1.7em; }
+				.hero-image { margin-bottom: 1em; }
+				.hero-image img { border-radius: 10px; }
 			}
 		</style>
 	</head>
 
 	<body>
+		<ParticleBackground />
+		<LorenzBackground />
+		<TorusKnotBackground />
 		<Header />
 		<main>
 			<article>
 				<div class="hero-image">
-					{heroImage && <Image width={1020} height={510} src={heroImage} alt="" />}
+					{heroImage && <Image width={1020} height={510} src={heroImage} alt={title} />}
 				</div>
 				<div class="prose">
-					<div class="title">
-						<div class="date">
+					<div class="article-header">
+						<div class="date-info">
+							<span class="date-dot"></span>
 							<FormattedDate date={pubDate} />
 							{
 								updatedDate && (
-									<div class="last-updated-on">
-										Last updated on <FormattedDate date={updatedDate} />
-									</div>
+									<span class="last-updated-on">
+										· Updated <FormattedDate date={updatedDate} />
+									</span>
 								)
 							}
 						</div>

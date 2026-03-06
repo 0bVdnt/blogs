@@ -4,7 +4,7 @@ description: 'A brief introduction to this integrated blogging space.'
 pubDate: 'Mar 06 2026'
 ---
 
-# `> Initializing Blog Sector...`
+
 
 Welcome to the new blog space built directly into my OS portfolio. As a systems enthusiast and full-stack developer, I always wanted a cozy place to share my thoughts, learnings, and experiences.
 

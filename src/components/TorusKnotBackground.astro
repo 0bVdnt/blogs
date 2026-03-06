@@ -1,0 +1,224 @@
+---
+// TorusKnotBackground.astro
+---
+
+<canvas id="torus-canvas" aria-hidden="true"></canvas>
+
+<style>
+	#torus-canvas {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		z-index: -2; /* Behind the Lorenz attractor (-1) */
+		pointer-events: none;
+		opacity: 0.4; /* Very subtle ambient background */
+		transition: opacity 1s ease;
+	}
+</style>
+
+<script>
+	class TorusKnot {
+		canvas: HTMLCanvasElement;
+		ctx: CanvasRenderingContext2D;
+		
+		width = 0;
+		height = 0;
+		animationFrameId = 0;
+		
+		points: {x: number, y: number, z: number}[] = [];
+		edges: {p1: number, p2: number}[] = [];
+		
+		// Rotation angles
+		angleX = 0;
+		angleY = 0;
+		angleZ = 0;
+		
+		isDarkMode = true;
+		themeColor = "rgba(137, 180, 250, 0.4)"; // Default Catppuccin Blue
+		
+		constructor(canvasElement: HTMLCanvasElement) {
+			this.canvas = canvasElement;
+			this.ctx = canvasElement.getContext('2d')!;
+			
+			this.generateGeometry();
+			this.resize();
+			window.addEventListener('resize', () => this.resize());
+			
+			this.initThemeListener();
+			this.updateColors();
+			this.animate();
+		}
+
+		generateGeometry() {
+			// p and q parameters define the knot shape. 
+			// (3, 7) creates a beautiful complex knot
+			const p = 3;
+			const q = 7;
+			
+			const numPoints = 800; // Resolution of the curve
+			
+			for (let i = 0; i < numPoints; i++) {
+				// theta goes from 0 to 2*PI
+				const theta = (i / numPoints) * Math.PI * 2;
+				
+				// Standard equations for Torus Knot
+				const r = Math.cos(q * theta) + 2;
+				const x = r * Math.cos(p * theta);
+				const y = r * Math.sin(p * theta);
+				const z = -Math.sin(q * theta);
+				
+				// Scale it up immediately
+				const scaleFactor = 60;
+				this.points.push({
+					x: x * scaleFactor,
+					y: y * scaleFactor,
+					z: z * scaleFactor
+				});
+				
+				// Create edges connecting current point to previous
+				if (i > 0) {
+					this.edges.push({ p1: i - 1, p2: i });
+				}
+			}
+			// Close the knot
+			this.edges.push({ p1: numPoints - 1, p2: 0 });
+		}
+
+		initThemeListener() {
+			const determineTheme = () => {
+				const currentTheme = document.documentElement.getAttribute('data-theme');
+				if (currentTheme) return currentTheme === 'mocha';
+				return window.matchMedia('(prefers-color-scheme: dark)').matches;
+			};
+			
+			this.isDarkMode = determineTheme();
+
+			const observer = new MutationObserver((mutations) => {
+				for (const mutation of mutations) {
+					if (mutation.attributeName === 'data-theme') {
+						this.isDarkMode = determineTheme();
+						this.updateColors();
+					}
+				}
+			});
+			observer.observe(document.documentElement, { attributes: true });
+			
+			window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+				if (!document.documentElement.hasAttribute('data-theme')) {
+					this.isDarkMode = e.matches;
+					this.updateColors();
+				}
+			});
+		}
+
+		updateColors() {
+			// Subtle contrasting colors to the Lorenz attractor (which is Mauve)
+			if (this.isDarkMode) {
+				// Mocha: Sapphire (116, 199, 236)
+				this.themeColor = "rgba(116, 199, 236, 0.25)";
+			} else {
+				// Latte: Sapphire (32, 159, 181)
+				this.themeColor = "rgba(32, 159, 181, 0.25)";
+			}
+		}
+
+		resize() {
+			this.width = window.innerWidth;
+			this.height = window.innerHeight;
+			this.canvas.width = this.width;
+			this.canvas.height = this.height;
+		}
+
+		animate() {
+			this.ctx.clearRect(0, 0, this.width, this.height);
+			
+			// Slowly rotate
+			this.angleX += 0.002;
+			this.angleY += 0.003;
+			this.angleZ += 0.001;
+			
+			const cx = this.width * 0.8; // Offset to the right side
+			const cy = this.height * 0.3; // Offset to the top
+			
+			// Precompute sine/cosine for rotation matrices
+			const sx = Math.sin(this.angleX), cx_rot = Math.cos(this.angleX);
+			const sy = Math.sin(this.angleY), cy_rot = Math.cos(this.angleY);
+			const sz = Math.sin(this.angleZ), cz_rot = Math.cos(this.angleZ);
+
+			const projected = this.points.map(p => {
+				// 1. Rotate around X axis
+				let rx = p.x;
+				let ry = p.y * cx_rot - p.z * sx;
+				let rz = p.y * sx + p.z * cx_rot;
+				
+				// 2. Rotate around Y axis
+				let rxx = rx * cy_rot + rz * sy;
+				let ryy = ry;
+				let rzz = -rx * sy + rz * cy_rot;
+				
+				// 3. Rotate around Z axis
+				let rxxx = rxx * cz_rot - ryy * sz;
+				let ryyy = rxx * sz + ryy * cz_rot;
+				let rzzz = rzz;
+				
+				// Add perspective (very subtle)
+				const perspective = 400;
+				const zOffset = rzzz + perspective;
+				let scale = 1;
+				if (zOffset > 0) {
+					scale = perspective / zOffset;
+				}
+				
+				return {
+					x: cx + rxxx * scale,
+					y: cy + ryyy * scale,
+					z: rzzz // Keep Z for depth sorting/fading if wanted
+				};
+			});
+
+			this.ctx.lineWidth = 1;
+			this.ctx.lineCap = 'round';
+			this.ctx.lineJoin = 'round';
+			this.ctx.strokeStyle = this.themeColor;
+
+			this.ctx.beginPath();
+			for (const edge of this.edges) {
+				const p1 = projected[edge.p1];
+				const p2 = projected[edge.p2];
+				
+				// Don't draw lines that go behind the "camera"
+				if (p1.x && p2.x) {
+					this.ctx.moveTo(p1.x, p1.y);
+					this.ctx.lineTo(p2.x, p2.y);
+				}
+			}
+			this.ctx.stroke();
+
+			this.animationFrameId = requestAnimationFrame(() => this.animate());
+		}
+
+		destroy() {
+			cancelAnimationFrame(this.animationFrameId);
+			window.removeEventListener('resize', this.resize);
+		}
+	}
+
+	let knot: TorusKnot | null = null;
+	
+	function init() {
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+			return;
+		}
+
+		const canvas = document.getElementById('torus-canvas') as HTMLCanvasElement;
+		if (canvas) {
+			if (knot) knot.destroy();
+			knot = new TorusKnot(canvas);
+		}
+	}
+
+	init();
+	document.addEventListener('astro:page-load', init);
+</script>
