@@ -1,0 +1,16 @@
+{
+    "name": "0bVdnt's Blog",
+    "short_name": "0bVdnt Blog",
+    "description": "Thoughts on systems, coding, and the web.",
+    "start_url": "/blogs/",
+    "display": "standalone",
+    "background_color": "#1e1e2e",
+    "theme_color": "#cba6f7",
+    "icons": [
+        {
+            "src": "/blogs/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ]
+}

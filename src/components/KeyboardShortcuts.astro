@@ -1,0 +1,303 @@
+---
+---
+
+<div class="keyboard-help" id="keyboard-help" hidden>
+	<div class="keyboard-modal">
+		<div class="keyboard-header">
+			<h3>Keyboard Shortcuts</h3>
+			<button class="keyboard-close" aria-label="Close">&times;</button>
+		</div>
+		<div class="keyboard-body">
+			<div class="shortcut-group">
+				<h4>Navigation</h4>
+				<div class="shortcut"><kbd>g</kbd> <kbd>h</kbd> <span>Go home</span></div>
+				<div class="shortcut"><kbd>g</kbd> <kbd>t</kbd> <span>Go to tags</span></div>
+				<div class="shortcut"><kbd>g</kbd> <kbd>a</kbd> <span>Go to about</span></div>
+			</div>
+			<div class="shortcut-group">
+				<h4>Actions</h4>
+				<div class="shortcut"><kbd>t</kbd> <span>Toggle theme</span></div>
+				<div class="shortcut"><kbd>/</kbd> <span>Focus search (if available)</span></div>
+				<div class="shortcut"><kbd>?</kbd> <span>Show this help</span></div>
+			</div>
+			<div class="shortcut-group">
+				<h4>On Blog Posts</h4>
+				<div class="shortcut"><kbd>j</kbd> <span>Next post</span></div>
+				<div class="shortcut"><kbd>k</kbd> <span>Previous post</span></div>
+				<div class="shortcut"><kbd>u</kbd> <span>Scroll to top</span></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<style>
+	.keyboard-help {
+		position: fixed;
+		inset: 0;
+		z-index: 1000;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: rgba(0, 0, 0, 0.6);
+		backdrop-filter: blur(4px);
+		-webkit-backdrop-filter: blur(4px);
+		opacity: 0;
+		visibility: hidden;
+		transition: opacity 0.2s ease, visibility 0.2s ease;
+	}
+
+	.keyboard-help[data-visible="true"] {
+		opacity: 1;
+		visibility: visible;
+	}
+
+	.keyboard-modal {
+		background: var(--mantle);
+		border: 1px solid var(--surface1);
+		border-radius: 16px;
+		box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+		max-width: 480px;
+		width: calc(100% - 2rem);
+		max-height: calc(100vh - 4rem);
+		overflow: auto;
+		transform: scale(0.95);
+		transition: transform 0.2s ease;
+	}
+
+	.keyboard-help[data-visible="true"] .keyboard-modal {
+		transform: scale(1);
+	}
+
+	.keyboard-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 1.25rem 1.5rem;
+		border-bottom: 1px solid var(--surface0);
+	}
+
+	.keyboard-header h3 {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 1em;
+		font-weight: 600;
+		color: var(--text);
+		margin: 0;
+	}
+
+	.keyboard-close {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 32px;
+		height: 32px;
+		background: var(--surface0);
+		border: 1px solid var(--surface1);
+		border-radius: 8px;
+		color: var(--subtext0);
+		font-size: 1.25em;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.keyboard-close:hover {
+		background: var(--surface1);
+		color: var(--text);
+	}
+
+	.keyboard-body {
+		padding: 1.5rem;
+	}
+
+	.shortcut-group {
+		margin-bottom: 1.5rem;
+	}
+
+	.shortcut-group:last-child {
+		margin-bottom: 0;
+	}
+
+	.shortcut-group h4 {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.75em;
+		font-weight: 600;
+		color: var(--accent);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		margin: 0 0 0.75rem;
+	}
+
+	.shortcut {
+		display: flex;
+		align-items: center;
+		gap: 0.5em;
+		padding: 0.4em 0;
+		font-size: 0.9em;
+	}
+
+	.shortcut kbd {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 24px;
+		padding: 0.2em 0.5em;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.85em;
+		color: var(--text);
+		background: var(--surface0);
+		border: 1px solid var(--surface1);
+		border-radius: 4px;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+	}
+
+	.shortcut span {
+		color: var(--subtext0);
+		margin-left: 0.5em;
+	}
+
+	@media (max-width: 500px) {
+		.keyboard-body {
+			padding: 1rem;
+		}
+
+		.shortcut {
+			font-size: 0.85em;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.keyboard-help,
+		.keyboard-modal {
+			transition: none;
+		}
+	}
+</style>
+
+<script is:inline>
+	(function () {
+		const help = document.getElementById('keyboard-help');
+		if (!help) return;
+
+		const closeBtn = help.querySelector('.keyboard-close');
+		const base = document.querySelector('link[rel="canonical"]')?.href.match(/\/blogs\/?/)?.[0] || '/blogs/';
+
+		let keySequence = '';
+		let keyTimeout;
+
+		function showHelp() {
+			help.hidden = false;
+			requestAnimationFrame(() => {
+				help.setAttribute('data-visible', 'true');
+			});
+		}
+
+		function hideHelp() {
+			help.setAttribute('data-visible', 'false');
+			setTimeout(() => {
+				help.hidden = true;
+			}, 200);
+		}
+
+		function navigate(path) {
+			window.location.href = base + path;
+		}
+
+		function handleKeydown(e) {
+			// Ignore if typing in input/textarea
+			if (e.target.matches('input, textarea, [contenteditable]')) return;
+			
+			// Ignore if modifier keys are pressed (except shift for ?)
+			if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+			const key = e.key.toLowerCase();
+
+			// Help modal toggle
+			if (e.key === '?' || (e.shiftKey && key === '/')) {
+				e.preventDefault();
+				help.hidden ? showHelp() : hideHelp();
+				return;
+			}
+
+			// Close help on Escape
+			if (key === 'escape' && !help.hidden) {
+				e.preventDefault();
+				hideHelp();
+				return;
+			}
+
+			// Theme toggle
+			if (key === 't' && help.hidden) {
+				e.preventDefault();
+				const toggle = document.getElementById('theme-toggle');
+				if (toggle) toggle.click();
+				return;
+			}
+
+			// Scroll to top
+			if (key === 'u' && help.hidden) {
+				e.preventDefault();
+				window.scrollTo({ top: 0, behavior: 'smooth' });
+				return;
+			}
+
+			// Next/prev post (on blog post pages)
+			if (key === 'j' && help.hidden) {
+				const nextLink = document.querySelector('.post-nav-next');
+				if (nextLink) {
+					e.preventDefault();
+					nextLink.click();
+				}
+				return;
+			}
+
+			if (key === 'k' && help.hidden) {
+				const prevLink = document.querySelector('.post-nav-prev');
+				if (prevLink) {
+					e.preventDefault();
+					prevLink.click();
+				}
+				return;
+			}
+
+			// Two-key sequences (g + something)
+			clearTimeout(keyTimeout);
+			keySequence += key;
+			
+			if (keySequence === 'gh') {
+				e.preventDefault();
+				navigate('');
+				keySequence = '';
+				return;
+			}
+			if (keySequence === 'gt') {
+				e.preventDefault();
+				navigate('tags/');
+				keySequence = '';
+				return;
+			}
+			if (keySequence === 'ga') {
+				e.preventDefault();
+				navigate('about');
+				keySequence = '';
+				return;
+			}
+
+			// Reset sequence after delay
+			keyTimeout = setTimeout(() => {
+				keySequence = '';
+			}, 1000);
+		}
+
+		document.addEventListener('keydown', handleKeydown);
+		closeBtn?.addEventListener('click', hideHelp);
+
+		// Close on backdrop click
+		help.addEventListener('click', (e) => {
+			if (e.target === help) hideHelp();
+		});
+
+		// Cleanup
+		document.addEventListener('astro:before-swap', () => {
+			document.removeEventListener('keydown', handleKeydown);
+		});
+	})();
+</script>

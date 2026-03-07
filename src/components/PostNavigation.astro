@@ -1,0 +1,163 @@
+---
+interface Post {
+	id: string;
+	title: string;
+}
+
+interface Props {
+	prevPost?: Post;
+	nextPost?: Post;
+	basePath: string;
+}
+
+const { prevPost, nextPost, basePath } = Astro.props;
+---
+
+{(prevPost || nextPost) && (
+	<nav class="post-nav" aria-label="Post navigation">
+		<div class="post-nav-inner">
+			{prevPost ? (
+				<a href={`${basePath}${prevPost.id}/`} class="post-nav-link post-nav-prev">
+					<span class="post-nav-direction">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+						Previous
+					</span>
+					<span class="post-nav-title">{prevPost.title}</span>
+				</a>
+			) : (
+				<div class="post-nav-placeholder"></div>
+			)}
+			
+			{nextPost ? (
+				<a href={`${basePath}${nextPost.id}/`} class="post-nav-link post-nav-next">
+					<span class="post-nav-direction">
+						Next
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+					</span>
+					<span class="post-nav-title">{nextPost.title}</span>
+				</a>
+			) : (
+				<div class="post-nav-placeholder"></div>
+			)}
+		</div>
+	</nav>
+)}
+
+<style>
+	.post-nav {
+		margin-top: 4rem;
+		padding-top: 2rem;
+		border-top: 1px solid var(--surface0);
+	}
+
+	.post-nav-inner {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1.5rem;
+	}
+
+	.post-nav-link {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding: 1.25rem 1.5rem;
+		background: var(--card-bg);
+		border: 1px solid var(--card-border);
+		border-radius: 12px;
+		text-decoration: none;
+		transition: all 0.2s ease;
+	}
+
+	.post-nav-link:hover {
+		border-color: var(--card-hover-border);
+		background: var(--surface0);
+		transform: translateY(-2px);
+		box-shadow: 0 4px 16px var(--shadow-color);
+		text-decoration: none;
+	}
+
+	.post-nav-prev {
+		text-align: left;
+	}
+
+	.post-nav-next {
+		text-align: right;
+	}
+
+	.post-nav-direction {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35em;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.75em;
+		font-weight: 600;
+		color: var(--accent);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.post-nav-next .post-nav-direction {
+		justify-content: flex-end;
+	}
+
+	.post-nav-direction svg {
+		transition: transform 0.2s ease;
+	}
+
+	.post-nav-prev:hover .post-nav-direction svg {
+		transform: translateX(-3px);
+	}
+
+	.post-nav-next:hover .post-nav-direction svg {
+		transform: translateX(3px);
+	}
+
+	.post-nav-title {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.95em;
+		font-weight: 500;
+		color: var(--text);
+		line-height: 1.4;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.post-nav-placeholder {
+		/* Empty space to maintain grid layout */
+	}
+
+	@media (max-width: 600px) {
+		.post-nav-inner {
+			grid-template-columns: 1fr;
+			gap: 1rem;
+		}
+
+		.post-nav-next {
+			text-align: left;
+		}
+
+		.post-nav-next .post-nav-direction {
+			justify-content: flex-start;
+		}
+
+		.post-nav-link {
+			padding: 1rem 1.25rem;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.post-nav-link {
+			transition: none;
+		}
+
+		.post-nav-link:hover {
+			transform: none;
+		}
+
+		.post-nav-direction svg {
+			transition: none;
+		}
+	}
+</style>

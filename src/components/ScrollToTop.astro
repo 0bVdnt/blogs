@@ -1,0 +1,109 @@
+---
+---
+
+<button id="scroll-to-top" class="scroll-to-top" aria-label="Scroll to top" title="Scroll to top">
+	<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+		<polyline points="18 15 12 9 6 15"></polyline>
+	</svg>
+</button>
+
+<style>
+	.scroll-to-top {
+		position: fixed;
+		bottom: 2rem;
+		right: 2rem;
+		z-index: 50;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 44px;
+		height: 44px;
+		border-radius: 50%;
+		background: var(--card-bg);
+		border: 1px solid var(--card-border);
+		color: var(--accent);
+		cursor: pointer;
+		opacity: 0;
+		visibility: hidden;
+		transform: translateY(10px);
+		transition: all 0.3s ease;
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
+		box-shadow: 0 4px 16px var(--shadow-color);
+	}
+
+	.scroll-to-top.visible {
+		opacity: 1;
+		visibility: visible;
+		transform: translateY(0);
+	}
+
+	.scroll-to-top:hover {
+		background: var(--surface0);
+		border-color: var(--card-hover-border);
+		box-shadow: 0 0 20px var(--glow-color);
+		transform: translateY(-2px);
+	}
+
+	.scroll-to-top:active {
+		transform: translateY(0) scale(0.95);
+	}
+
+	@media (max-width: 480px) {
+		.scroll-to-top {
+			bottom: 1.25rem;
+			right: 1.25rem;
+			width: 40px;
+			height: 40px;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.scroll-to-top {
+			transition: opacity 0.15s ease;
+			transform: none !important;
+		}
+
+		.scroll-to-top.visible {
+			transform: none !important;
+		}
+
+		.scroll-to-top:hover {
+			transform: none !important;
+		}
+	}
+</style>
+
+<script is:inline>
+	(function () {
+		const btn = document.getElementById('scroll-to-top');
+		if (!btn) return;
+
+		let ticking = false;
+
+		function onScroll() {
+			if (!ticking) {
+				requestAnimationFrame(() => {
+					if (window.scrollY > 400) {
+						btn.classList.add('visible');
+					} else {
+						btn.classList.remove('visible');
+					}
+					ticking = false;
+				});
+				ticking = true;
+			}
+		}
+
+		window.addEventListener('scroll', onScroll, { passive: true });
+
+		btn.addEventListener('click', () => {
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		});
+
+		// Cleanup on navigation
+		document.addEventListener('astro:before-swap', () => {
+			window.removeEventListener('scroll', onScroll);
+		});
+	})();
+</script>

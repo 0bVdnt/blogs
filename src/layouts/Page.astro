@@ -1,0 +1,133 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import ScrollToTop from '../components/ScrollToTop.astro';
+import LorenzBackground from '../components/LorenzBackground.astro';
+import ParticleBackground from '../components/ParticleBackground.astro';
+import TorusKnotBackground from '../components/TorusKnotBackground.astro';
+
+interface Props {
+	title: string;
+	description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={title} description={description} />
+		<style>
+			main {
+				width: calc(100% - 2em);
+				max-width: 100%;
+				margin: 0;
+			}
+
+			.page-content {
+				width: 720px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 1em;
+				color: var(--text);
+			}
+
+			.page-header {
+				margin-bottom: 2.5em;
+				text-align: center;
+				animation: fadeInUp 0.4s ease forwards;
+			}
+
+			.page-header h1 {
+				font-size: 2.4em;
+				margin: 0 0 0.3em;
+				background: linear-gradient(135deg, var(--mauve), var(--blue), var(--lavender));
+				background-size: 200% 200%;
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+				background-clip: text;
+				animation: gradient-shift 6s ease infinite;
+			}
+
+			.page-header .page-label {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.5em;
+				font-family: "JetBrains Mono", monospace;
+				font-size: 0.78em;
+				color: var(--subtext0);
+				background: var(--card-bg);
+				padding: 0.35em 0.9em;
+				border-radius: 6px;
+				border: 1px solid var(--card-border);
+				backdrop-filter: blur(8px);
+				-webkit-backdrop-filter: blur(8px);
+				margin-bottom: 1em;
+			}
+
+			.page-label-dot {
+				width: 6px;
+				height: 6px;
+				border-radius: 50%;
+				background: var(--blue);
+			}
+
+			/* Content prose styles */
+			.page-content :global(p) {
+				margin-bottom: 1.75em;
+				line-height: 1.8;
+			}
+
+			.page-content :global(a) {
+				color: var(--link);
+				text-decoration: none;
+				border-bottom: 1px dashed var(--link);
+				transition: all 0.2s ease;
+			}
+
+			.page-content :global(a:hover) {
+				color: var(--link-hover);
+				border-bottom-style: solid;
+			}
+
+			@media (max-width: 720px) {
+				.page-header h1 { font-size: 1.8em; }
+			}
+
+			@media (prefers-reduced-motion: reduce) {
+				.page-header {
+					animation: none;
+					opacity: 1;
+				}
+				.page-header h1 {
+					animation: none;
+					background-size: 100% 100%;
+				}
+			}
+		</style>
+	</head>
+
+	<body>
+		<ParticleBackground />
+		<LorenzBackground />
+		<TorusKnotBackground />
+		<Header />
+		<main id="main-content">
+			<div class="page-content">
+				<div class="page-header">
+					<span class="page-label">
+						<span class="page-label-dot"></span>
+						~/blogs/about
+					</span>
+					<h1>{title}</h1>
+					<hr />
+				</div>
+				<slot />
+			</div>
+		</main>
+		<Footer />
+		<ScrollToTop />
+	</body>
+</html>

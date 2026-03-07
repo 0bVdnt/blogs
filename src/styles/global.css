@@ -151,7 +151,9 @@ body::after {
 	opacity: 0.15;
 }
 
-:global([data-theme="latte"]) body::after {
+/* FIX: removed :global() wrapper — invalid in a plain CSS file, caused
+   the entire rule to be silently dropped by browsers */
+[data-theme="latte"] body::after {
 	opacity: 0.04;
 }
 
@@ -364,4 +366,146 @@ hr {
 	clip: rect(1px, 1px, 1px, 1px);
 	clip-path: inset(50%);
 	white-space: nowrap;
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}
+
+/* ===== Focus States ===== */
+:focus {
+	outline: none;
+}
+
+:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+	border-radius: 4px;
+}
+
+/* Focus ring for interactive elements */
+.focus-ring:focus-visible {
+	box-shadow: 0 0 0 3px var(--glow-color);
+}
+
+/* ===== Print Styles ===== */
+@media print {
+	body::after {
+		display: none !important;
+	}
+
+	header,
+	footer,
+	.scroll-to-top,
+	.reading-progress-container,
+	.copy-code-btn,
+	#particle-canvas,
+	#lorenz-canvas,
+	#torus-canvas {
+		display: none !important;
+	}
+
+	body {
+		background: white !important;
+		color: black !important;
+		font-size: 12pt;
+		line-height: 1.5;
+	}
+
+	main {
+		width: 100% !important;
+		max-width: 100% !important;
+		padding: 0 !important;
+	}
+
+	a {
+		color: black !important;
+		text-decoration: underline;
+	}
+
+	a[href^="http"]::after {
+		content: " (" attr(href) ")";
+		font-size: 0.8em;
+		color: #666;
+	}
+
+	pre,
+	code {
+		background: #f4f4f4 !important;
+		border: 1px solid #ddd !important;
+		color: black !important;
+	}
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		color: black !important;
+		-webkit-text-fill-color: black !important;
+		background: none !important;
+		page-break-after: avoid;
+	}
+
+	img {
+		max-width: 100% !important;
+		page-break-inside: avoid;
+	}
+
+	pre,
+	blockquote {
+		page-break-inside: avoid;
+	}
+}
+
+/* ===== Scroll Anchor Highlighting ===== */
+:target {
+	scroll-margin-top: 80px;
+}
+
+h2:target,
+h3:target,
+h4:target {
+	animation: highlight-flash 2s ease-out;
+}
+
+@keyframes highlight-flash {
+	0% {
+		background: var(--glow-color);
+		border-radius: 4px;
+		box-shadow: 0 0 0 8px var(--glow-color);
+	}
+
+	100% {
+		background: transparent;
+		box-shadow: 0 0 0 8px transparent;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	h2:target,
+	h3:target,
+	h4:target {
+		animation: none;
+		background: var(--glow-color);
+		border-radius: 4px;
+		padding-left: 8px;
+		margin-left: -8px;
+	}
 }

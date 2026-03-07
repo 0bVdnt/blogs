@@ -1,0 +1,103 @@
+---
+interface Props {
+	tags: string[];
+	basePath?: string;
+	size?: 'sm' | 'md';
+	limit?: number;
+}
+
+const { tags, basePath = '/blogs/', size = 'md', limit } = Astro.props;
+const displayTags = limit ? tags.slice(0, limit) : tags;
+const hasMore = limit && tags.length > limit;
+---
+
+{displayTags.length > 0 && (
+	<ul class={`tag-list tag-list-${size}`} role="list">
+		{displayTags.map((tag) => (
+			<li>
+				<a href={`${basePath}tags/${tag}/`} class="tag">
+					<span class="tag-hash">#</span>{tag}
+				</a>
+			</li>
+		))}
+		{hasMore && (
+			<li>
+				<span class="tag-more">+{tags.length - limit!}</span>
+			</li>
+		)}
+	</ul>
+)}
+
+<style>
+	.tag-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4em;
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	.tag-list li {
+		margin: 0;
+	}
+
+	.tag {
+		display: inline-flex;
+		align-items: center;
+		font-family: "JetBrains Mono", monospace;
+		color: var(--subtext0);
+		text-decoration: none;
+		background: var(--surface0);
+		border-radius: 4px;
+		transition: all 0.15s ease;
+	}
+
+	.tag:hover {
+		color: var(--accent);
+		background: var(--surface1);
+		text-decoration: none;
+	}
+
+	.tag-hash {
+		color: var(--accent);
+		opacity: 0.7;
+	}
+
+	.tag:hover .tag-hash {
+		opacity: 1;
+	}
+
+	.tag-more {
+		display: inline-flex;
+		align-items: center;
+		font-family: "JetBrains Mono", monospace;
+		color: var(--overlay1);
+	}
+
+	/* Size: md (default) */
+	.tag-list-md .tag {
+		font-size: 0.75em;
+		padding: 0.25em 0.55em;
+	}
+
+	.tag-list-md .tag-more {
+		font-size: 0.75em;
+	}
+
+	/* Size: sm */
+	.tag-list-sm .tag {
+		font-size: 0.68em;
+		padding: 0.2em 0.45em;
+	}
+
+	.tag-list-sm .tag-more {
+		font-size: 0.68em;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.tag {
+			transition: none;
+		}
+	}
+</style>

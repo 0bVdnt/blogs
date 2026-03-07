@@ -17,10 +17,30 @@ const posts = (await getCollection('blog')).sort(
 
 function estimateReadingTime(body: string | undefined): string {
 	if (!body) return '1 min';
-	const words = body.split(/\s+/).length;
+	// Strip markdown syntax before counting
+	const plain = body
+		.replace(/```[\s\S]*?```/g, '')   // code blocks
+		.replace(/`[^`]*`/g, '')           // inline code
+		.replace(/[#*_~>\[\]()!|-]/g, '')  // md symbols
+		.replace(/https?:\/\/\S+/g, '');   // urls
+	const words = plain.split(/\s+/).filter(w => w.length > 0).length;
 	const minutes = Math.max(1, Math.ceil(words / 200));
 	return `${minutes} min`;
 }
+
+// Calculate total stats
+const totalWords = posts.reduce((sum, post) => {
+	if (!post.body) return sum;
+	const plain = post.body
+		.replace(/```[\s\S]*?```/g, '')
+		.replace(/`[^`]*`/g, '')
+		.replace(/[#*_~>\[\]()!|-]/g, '')
+		.replace(/https?:\/\/\S+/g, '');
+	const words = plain.split(/\s+/).filter(w => w.length > 0).length;
+	return sum + words;
+}, 0);
+
+const totalReadingTime = Math.ceil(totalWords / 200);
 ---
 
 <!doctype html>
@@ -36,7 +56,6 @@ function estimateReadingTime(body: string | undefined): string {
 				position: relative;
 			}
 
-			/* Background glow behind hero */
 			.hero::before {
 				content: '';
 				position: absolute;
@@ -56,10 +75,10 @@ function estimateReadingTime(body: string | undefined): string {
 				text-align: left;
 				max-width: 720px;
 				width: 100%;
-				box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4); /* Stronger shadow */
+				box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
 				border-radius: 12px;
-				border: 1px solid var(--surface2); /* Crisper outer border */
-				background: var(--crust); /* Opaque dark background */
+				border: 1px solid var(--surface2);
+				background: var(--crust);
 				position: relative;
 				z-index: 10;
 			}
@@ -102,7 +121,6 @@ function estimateReadingTime(body: string | undefined): string {
 				border-radius: 0 0 11px 11px;
 			}
 
-			/* Tech decor corners */
 			.tech-corner {
 				position: absolute;
 				width: 12px;
@@ -114,13 +132,6 @@ function estimateReadingTime(body: string | undefined): string {
 			.tc-tr { top: 16px; right: 16px; border-left: none; border-bottom: none; }
 			.tc-bl { bottom: 16px; left: 16px; border-right: none; border-top: none; }
 			.tc-br { bottom: 16px; right: 16px; border-left: none; border-top: none; }
-
-			.hero-comment {
-				font-family: "JetBrains Mono", monospace;
-				color: var(--overlay1);
-				font-size: 0.85em;
-				margin: 0 0 0.75em;
-			}
 
 			.hero-title {
 				font-family: "JetBrains Mono", monospace;
@@ -174,9 +185,43 @@ function estimateReadingTime(body: string | undefined): string {
 				border-bottom-style: solid;
 			}
 
+			/* ===== Section Header ===== */
+			.section-header {
+				display: flex;
+				align-items: center;
+				gap: 1em;
+				margin-bottom: 2rem;
+				max-width: 720px;
+				margin-left: auto;
+				margin-right: auto;
+			}
 
+			.section-header h2 {
+				font-family: "JetBrains Mono", monospace;
+				font-size: 1em;
+				font-weight: 600;
+				color: var(--subtext0);
+				margin: 0;
+				white-space: nowrap;
+			}
 
-			/* ===== Posts Grid (full-width cards) ===== */
+			.section-header .section-line {
+				flex: 1;
+				height: 1px;
+				background: linear-gradient(to right, var(--surface1), transparent);
+			}
+
+			.section-header .post-count {
+				font-family: "JetBrains Mono", monospace;
+				font-size: 0.75em;
+				color: var(--overlay0);
+				background: var(--card-bg);
+				padding: 0.2em 0.6em;
+				border-radius: 6px;
+				border: 1px solid var(--card-border);
+			}
+
+			/* ===== Posts Grid ===== */
 			.posts-grid {
 				display: flex;
 				flex-direction: column;
@@ -190,7 +235,7 @@ function estimateReadingTime(body: string | undefined): string {
 
 			/* ===== Interactive Cards ===== */
 			.post-card {
-				perspective: 1000px; /* For 3D Tilt */
+				perspective: 1000px;
 				animation: fadeInUp 0.5s ease forwards;
 				opacity: 0;
 				display: flex;
@@ -201,6 +246,8 @@ function estimateReadingTime(body: string | undefined): string {
 			.post-card:nth-child(2) { animation-delay: 0.15s; }
 			.post-card:nth-child(3) { animation-delay: 0.25s; }
 			.post-card:nth-child(4) { animation-delay: 0.35s; }
+			.post-card:nth-child(5) { animation-delay: 0.45s; }
+			.post-card:nth-child(6) { animation-delay: 0.55s; }
 
 			.card-link {
 				display: flex;
@@ -210,29 +257,31 @@ function estimateReadingTime(body: string | undefined): string {
 				outline: none;
 			}
 
+			.card-link:hover {
+				text-decoration: none;
+			}
+
 			.card-inner {
 				display: flex;
-				flex-direction: row; /* Horizontal layout for full-width */
-				align-items: center;
+				flex-direction: row;
+				align-items: stretch;
 				width: 100%;
-				background: rgba(30, 30, 46, 0.4); /* Lighter, highly transparent */
-				border: 1px solid var(--surface0); /* Very subtle border */
-				border-left: 4px solid transparent; /* Accent border on hover */
+				background: rgba(30, 30, 46, 0.4);
+				border: 1px solid var(--surface0);
+				border-left: 4px solid transparent;
 				border-radius: 16px;
 				overflow: hidden;
-				transition: transform 0.2s ease, box-shadow 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+				transition: transform 0.25s ease, box-shadow 0.3s ease, border-color 0.3s ease, background 0.3s ease;
 				backdrop-filter: blur(8px);
 				-webkit-backdrop-filter: blur(8px);
 				position: relative;
 				padding: 0.5rem;
 			}
 
-			/* Specific light theme adjustments for card */
 			:global([data-theme="latte"]) .card-inner {
 				background: rgba(255, 255, 255, 0.6);
 			}
 
-			/* Mouse Spotlight Background Overlay */
 			.card-inner::before {
 				content: "";
 				position: absolute;
@@ -248,7 +297,6 @@ function estimateReadingTime(body: string | undefined): string {
 				transition: opacity 0.3s ease;
 			}
 
-			/* Mouse Spotlight Border Glow Overlay */
 			.card-inner::after {
 				content: "";
 				position: absolute;
@@ -286,20 +334,18 @@ function estimateReadingTime(body: string | undefined): string {
 				box-shadow: 0 12px 30px rgba(0,0,0,0.15);
 				background: rgba(30, 30, 46, 0.7);
 				border-color: var(--surface1);
-				border-left-color: var(--mauve); /* Accent border pops on hover */
+				border-left-color: var(--mauve);
 			}
 
 			:global([data-theme="latte"]) .card-inner:hover {
 				background: rgba(255, 255, 255, 0.9);
 			}
 
-			/* Elements inside card MUST sit above the ::before spotlight background */
 			.card-image, .card-body {
 				position: relative;
 				z-index: 3;
 			}
 
-			/* Card image (horizontal layout) */
 			.card-image {
 				width: 240px;
 				height: 100%;
@@ -322,7 +368,6 @@ function estimateReadingTime(body: string | undefined): string {
 				transform: scale(1.05);
 			}
 
-			/* Card body */
 			.card-body {
 				flex: 1;
 				padding: 1.5rem 2rem;
@@ -364,6 +409,12 @@ function estimateReadingTime(body: string | undefined): string {
 				gap: 0.3em;
 			}
 
+			.card-reading-time svg {
+				width: 14px;
+				height: 14px;
+				flex-shrink: 0;
+			}
+
 			.card-filename {
 				font-family: "JetBrains Mono", monospace;
 				font-size: 0.7em;
@@ -396,17 +447,67 @@ function estimateReadingTime(body: string | undefined): string {
 				overflow: hidden;
 			}
 
+			/* Arrow indicator */
+			.card-arrow {
+				position: relative;
+				z-index: 3;
+				display: flex;
+				align-items: center;
+				padding-right: 1rem;
+				color: var(--overlay0);
+				transition: color 0.2s ease, transform 0.2s ease;
+			}
+
+			.card-inner:hover .card-arrow {
+				color: var(--accent);
+				transform: translateX(4px);
+			}
+
 			/* ===== Empty State ===== */
 			.empty-state {
 				text-align: center;
 				padding: 4rem 1rem;
 				font-family: "JetBrains Mono", monospace;
+				max-width: 720px;
+				margin: 0 auto;
 			}
 
-			.empty-state .empty-prompt {
-				font-size: 1.2em;
-				color: var(--accent);
-				margin-bottom: 0.5em;
+			.empty-terminal {
+				display: inline-block;
+				text-align: left;
+				max-width: 400px;
+				width: 100%;
+				border-radius: 12px;
+				border: 1px solid var(--surface2);
+				background: var(--crust);
+				box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+				animation: fadeInUp 0.5s ease forwards;
+			}
+
+			.empty-terminal .terminal-bar {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				padding: 10px 14px;
+				background: var(--mantle);
+				border-radius: 11px 11px 0 0;
+				border-bottom: 1px solid var(--surface1);
+			}
+
+			.empty-terminal .terminal-body {
+				padding: 1.5rem 2rem;
+			}
+
+			.empty-prompt {
+				font-size: 0.9em;
+				color: var(--green);
+				margin: 0 0 0.5em;
+			}
+
+			.empty-output {
+				color: var(--overlay1);
+				font-size: 0.85em;
+				margin: 0;
 			}
 
 			/* ===== Responsive ===== */
@@ -415,8 +516,45 @@ function estimateReadingTime(body: string | undefined): string {
 				.terminal-body { padding: 1.5rem 1.5rem; }
 				.card-inner { flex-direction: column; padding: 0; }
 				.card-image { width: 100%; margin: 0; border-radius: 16px 16px 0 0; min-height: unset; aspect-ratio: 16/9; }
-				.card-body { padding: 1.5rem; }
+				.card-body { padding: 1.25rem 1.5rem; }
 				.card-filename { display: none; }
+				.card-arrow { display: none; }
+				.section-header { padding: 0 0.25rem; }
+			}
+
+			/* ===== Reduced Motion ===== */
+			@media (prefers-reduced-motion: reduce) {
+				.post-card {
+					opacity: 1 !important;
+					animation: none !important;
+				}
+
+				.hero-title {
+					animation: none !important;
+					background-size: 100% 100% !important;
+				}
+
+				.cursor {
+					animation: none !important;
+					opacity: 1 !important;
+				}
+
+				.card-inner {
+					transition: none !important;
+				}
+
+				.card-inner:hover {
+					transform: none !important;
+				}
+
+				.card-image img {
+					transition: none !important;
+				}
+
+				.empty-terminal {
+					animation: none !important;
+					opacity: 1 !important;
+				}
 			}
 		</style>
 	</head>
@@ -425,14 +563,14 @@ function estimateReadingTime(body: string | undefined): string {
 		<LorenzBackground />
 		<TorusKnotBackground />
 		<Header />
-		<main>
+		<main id="main-content">
 			<div class="hero">
 				<div class="hero-terminal">
 					<div class="terminal-bar">
 						<span class="terminal-dot red"></span>
 						<span class="terminal-dot yellow"></span>
 						<span class="terminal-dot green"></span>
-						<span class="terminal-title">~/0bVdnt/blog</span>
+						<span class="terminal-title">~/0bVdnt/blogs</span>
 					</div>
 					<div class="terminal-body">
 						<div class="tech-corner tc-tl"></div>
@@ -453,11 +591,26 @@ function estimateReadingTime(body: string | undefined): string {
 
 			{posts.length === 0 ? (
 				<div class="empty-state">
-					<p class="empty-prompt">&gt; ls ./posts</p>
-					<p>No entries found. Check back soon.</p>
+					<div class="empty-terminal">
+						<div class="terminal-bar">
+							<span class="terminal-dot red"></span>
+							<span class="terminal-dot yellow"></span>
+							<span class="terminal-dot green"></span>
+						</div>
+						<div class="terminal-body">
+							<p class="empty-prompt">$ ls ./posts</p>
+							<p class="empty-output">No entries found.</p>
+							<p class="empty-output">Check back soon.</p>
+						</div>
+					</div>
 				</div>
 			) : (
 				<section>
+					<div class="section-header">
+						<h2>~/blogs/posts</h2>
+						<div class="section-line"></div>
+						<span class="post-count">{posts.length} {posts.length === 1 ? 'entry' : 'entries'}</span>
+					</div>
 					<ul class="posts-grid" id="cards-container">
 						{posts.map((post) => (
 							<li class="post-card">
@@ -479,15 +632,18 @@ function estimateReadingTime(body: string | undefined): string {
 													<FormattedDate date={post.data.pubDate} />
 												</span>
 												<span class="card-reading-time">
-													<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+													<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
 													{estimateReadingTime(post.body)}
 												</span>
-												<span class="card-filename">{post.id}.md</span>
+												<span class="card-filename">~/blogs/{post.id}.md</span>
 											</div>
 											<h4 class="card-title">{post.data.title}</h4>
 											{post.data.description && (
 												<p class="card-excerpt">{post.data.description}</p>
 											)}
+										</div>
+										<div class="card-arrow">
+											<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
 										</div>
 									</div>
 								</a>
@@ -504,16 +660,14 @@ function estimateReadingTime(body: string | undefined): string {
 			(function() {
 				// --- Text Scramble Effect ---
 				const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
-				let interval = null;
+				let scrambleInterval = null;
 				const el = document.getElementById("scramble-target");
 
 				if (el) {
 					const targetText = el.getAttribute("data-value");
 					let iteration = 0;
-					
-					clearInterval(interval);
-					
-					interval = setInterval(() => {
+
+					scrambleInterval = setInterval(() => {
 						el.innerText = targetText
 							.split("")
 							.map((letter, index) => {
@@ -521,41 +675,57 @@ function estimateReadingTime(body: string | undefined): string {
 								return letters[Math.floor(Math.random() * 48)];
 							})
 							.join("");
-						
-						if(iteration >= targetText.length){ 
-							clearInterval(interval);
+
+						if(iteration >= targetText.length){
+							clearInterval(scrambleInterval);
+							scrambleInterval = null;
 						}
-						
+
 						iteration += 1 / 3;
 					}, 30);
 				}
 
-				// --- Mouse Spotlight & 3D Tilt Effect ---
-				// Only run if user hasn't preferred reduced motion
-				if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+				document.addEventListener('astro:before-swap', () => {
+					if (scrambleInterval) {
+						clearInterval(scrambleInterval);
+						scrambleInterval = null;
+					}
+				});
+
+				// --- Mouse Spotlight & 3D Tilt ---
+				const isTouchDevice = window.matchMedia('(hover: none)').matches;
+				const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+				if (!prefersReducedMotion) {
 					const cards = document.querySelectorAll(".card-inner");
-					
+
 					for (const card of cards) {
 						card.addEventListener("mousemove", e => {
 							const rect = card.getBoundingClientRect();
 							const x = e.clientX - rect.left;
 							const y = e.clientY - rect.top;
 
-							// Spotlight coordinates
 							card.style.setProperty("--mouse-x", `${x}px`);
 							card.style.setProperty("--mouse-y", `${y}px`);
 
-							// 3D Tilt calculation
-							const centerX = rect.width / 2;
-							const centerY = rect.height / 2;
-							const rotateX = ((y - centerY) / centerY) * -4; // Max rotation 4deg
-							const rotateY = ((x - centerX) / centerX) * 4;
-							
-							card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+							if (!isTouchDevice) {
+								const centerX = rect.width / 2;
+								const centerY = rect.height / 2;
+								const rotateX = ((y - centerY) / centerY) * -4;
+								const rotateY = ((x - centerX) / centerX) * 4;
+
+								card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+							}
 						});
 
 						card.addEventListener("mouseleave", () => {
-							card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+							card.style.transform = '';
+							card.style.removeProperty("--mouse-x");
+							card.style.removeProperty("--mouse-y");
+						});
+
+						card.addEventListener("touchend", () => {
+							card.style.transform = '';
 						});
 					}
 				}

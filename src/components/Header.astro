@@ -1,10 +1,12 @@
 ---
 import { SITE_TITLE } from '../consts';
 import HeaderLink from './HeaderLink.astro';
+import KeyboardShortcuts from './KeyboardShortcuts.astro';
 import ThemeToggle from './ThemeToggle.astro';
 const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 ---
 
+<a href="#main-content" class="skip-link">Skip to content</a>
 <header>
 	<nav>
 		<div class="nav-left">
@@ -14,11 +16,12 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 		</div>
 		<div class="nav-center">
 			<HeaderLink href={base}>Blog</HeaderLink>
+			<HeaderLink href={`${base}tags`}>Tags</HeaderLink>
 			<HeaderLink href={`${base}about`}>About</HeaderLink>
 		</div>
 		<div class="nav-right">
 			<ThemeToggle />
-			<a href="https://github.com/0bVdnt" target="_blank" class="social-link">
+			<a href="https://github.com/0bVdnt" target="_blank" rel="noopener noreferrer" class="social-link">
 				<span class="sr-only">Go to 0bVdnt's GitHub</span>
 				<svg viewBox="0 0 16 16" aria-hidden="true" width="24" height="24"
 					><path
@@ -30,7 +33,31 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 		</div>
 	</nav>
 </header>
+<KeyboardShortcuts />
 <style>
+	.skip-link {
+		position: absolute;
+		top: -100%;
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: 1000;
+		background: var(--accent);
+		color: var(--base);
+		padding: 0.75em 1.5em;
+		border-radius: 0 0 8px 8px;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.85em;
+		font-weight: 600;
+		text-decoration: none;
+		transition: top 0.2s ease;
+	}
+
+	.skip-link:focus {
+		top: 0;
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+	}
+
 	header {
 		position: sticky;
 		top: 0;

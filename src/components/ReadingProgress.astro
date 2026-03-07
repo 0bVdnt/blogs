@@ -1,0 +1,74 @@
+---
+---
+
+<div class="reading-progress-container" aria-hidden="true">
+	<div class="reading-progress-bar" id="reading-progress"></div>
+</div>
+
+<style>
+	.reading-progress-container {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 3px;
+		z-index: 200;
+		background: transparent;
+	}
+
+	.reading-progress-bar {
+		height: 100%;
+		width: 0%;
+		background: linear-gradient(90deg, var(--mauve), var(--blue), var(--lavender));
+		background-size: 200% 100%;
+		animation: gradient-x 3s ease infinite;
+		transition: width 0.1s ease-out;
+		box-shadow: 0 0 10px var(--glow-color);
+	}
+
+	@keyframes gradient-x {
+		0%, 100% { background-position: 0% 50%; }
+		50% { background-position: 100% 50%; }
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.reading-progress-bar {
+			animation: none;
+			background: var(--accent);
+			transition: none;
+		}
+	}
+</style>
+
+<script is:inline>
+	(function () {
+		const progressBar = document.getElementById('reading-progress');
+		if (!progressBar) return;
+
+		let ticking = false;
+
+		function updateProgress() {
+			const scrollTop = window.scrollY;
+			const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+			const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+			progressBar.style.width = `${Math.min(100, Math.max(0, progress))}%`;
+		}
+
+		function onScroll() {
+			if (!ticking) {
+				requestAnimationFrame(() => {
+					updateProgress();
+					ticking = false;
+				});
+				ticking = true;
+			}
+		}
+
+		window.addEventListener('scroll', onScroll, { passive: true });
+		updateProgress();
+
+		document.addEventListener('astro:before-swap', () => {
+			window.removeEventListener('scroll', onScroll);
+		});
+	})();
+</script>

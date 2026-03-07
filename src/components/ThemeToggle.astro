@@ -84,27 +84,34 @@
 		// Set theme immediately to prevent flash
 		setTheme(getPreferredTheme());
 
-		// Handle toggle click
-		document.addEventListener('DOMContentLoaded', () => {
+		function bindToggle() {
 			const toggle = document.getElementById('theme-toggle');
-			if (toggle) {
-				toggle.addEventListener('click', () => {
-					const current = document.documentElement.getAttribute('data-theme');
-					const next = current === 'mocha' ? 'latte' : 'mocha';
-					setTheme(next);
+			if (!toggle || toggle.dataset.bound) return;
+			toggle.dataset.bound = 'true';
 
-					// Rotate animation
-					toggle.style.transform = 'rotate(360deg)';
-					setTimeout(() => {
-						toggle.style.transform = '';
-					}, 400);
-				});
-			}
-		});
+			toggle.addEventListener('click', () => {
+				const current = document.documentElement.getAttribute('data-theme');
+				const next = current === 'mocha' ? 'latte' : 'mocha';
+				setTheme(next);
 
-		// Also handle Astro view transitions
+				toggle.style.transform = 'rotate(360deg)';
+				setTimeout(() => {
+					toggle.style.transform = '';
+				}, 400);
+			});
+		}
+
+		// Bind on initial load
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', bindToggle);
+		} else {
+			bindToggle();
+		}
+
+		// Re-bind after Astro view transition swaps DOM
 		document.addEventListener('astro:after-swap', () => {
 			setTheme(getPreferredTheme());
+			bindToggle();
 		});
 	})();
 </script>

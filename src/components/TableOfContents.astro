@@ -1,0 +1,212 @@
+---
+interface Heading {
+	depth: number;
+	slug: string;
+	text: string;
+}
+
+interface Props {
+	headings: Heading[];
+}
+
+const { headings } = Astro.props;
+const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
+---
+
+{tocHeadings.length > 0 && (
+	<nav class="toc" aria-label="Table of contents">
+		<div class="toc-header">
+			<span class="toc-icon">
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<line x1="8" y1="6" x2="21" y2="6"></line>
+					<line x1="8" y1="12" x2="21" y2="12"></line>
+					<line x1="8" y1="18" x2="21" y2="18"></line>
+					<line x1="3" y1="6" x2="3.01" y2="6"></line>
+					<line x1="3" y1="12" x2="3.01" y2="12"></line>
+					<line x1="3" y1="18" x2="3.01" y2="18"></line>
+				</svg>
+			</span>
+			<span class="toc-title">Contents</span>
+		</div>
+		<ul class="toc-list" id="toc-list">
+			{tocHeadings.map((heading) => (
+				<li class={`toc-item toc-depth-${heading.depth}`}>
+					<a href={`#${heading.slug}`} class="toc-link" data-slug={heading.slug}>
+						{heading.text}
+					</a>
+				</li>
+			))}
+		</ul>
+	</nav>
+)}
+
+<style>
+	.toc {
+		background: var(--card-bg);
+		border: 1px solid var(--card-border);
+		border-radius: 12px;
+		padding: 1.25rem 1.5rem;
+		margin: 2rem 0;
+		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
+	}
+
+	.toc-header {
+		display: flex;
+		align-items: center;
+		gap: 0.5em;
+		margin-bottom: 1rem;
+		padding-bottom: 0.75rem;
+		border-bottom: 1px solid var(--surface0);
+	}
+
+	.toc-icon {
+		display: flex;
+		color: var(--accent);
+	}
+
+	.toc-title {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.85em;
+		font-weight: 600;
+		color: var(--text);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.toc-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	.toc-item {
+		margin: 0;
+		line-height: 1.4;
+	}
+
+	.toc-depth-2 {
+		margin-top: 0.5em;
+	}
+
+	.toc-depth-2:first-child {
+		margin-top: 0;
+	}
+
+	.toc-depth-3 {
+		padding-left: 1.25em;
+		position: relative;
+	}
+
+	.toc-depth-3::before {
+		content: "└";
+		position: absolute;
+		left: 0.25em;
+		color: var(--surface2);
+		font-family: "JetBrains Mono", monospace;
+	}
+
+	.toc-link {
+		display: inline-block;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.82em;
+		color: var(--subtext0);
+		text-decoration: none;
+		padding: 0.25em 0;
+		transition: color 0.2s ease, padding-left 0.2s ease;
+		border-bottom: 1px solid transparent;
+	}
+
+	.toc-link:hover {
+		color: var(--accent);
+		text-decoration: none;
+		border-bottom-color: var(--accent);
+	}
+
+	.toc-link.active {
+		color: var(--accent);
+		padding-left: 0.5em;
+		border-left: 2px solid var(--accent);
+	}
+
+	.toc-depth-2 > .toc-link {
+		font-weight: 500;
+		color: var(--text);
+	}
+
+	.toc-depth-2 > .toc-link.active {
+		color: var(--accent);
+	}
+
+	@media (max-width: 720px) {
+		.toc {
+			padding: 1rem 1.25rem;
+		}
+
+		.toc-link {
+			font-size: 0.78em;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.toc-link {
+			transition: none;
+		}
+	}
+</style>
+
+<script is:inline>
+	(function () {
+		const tocList = document.getElementById('toc-list');
+		if (!tocList) return;
+
+		const links = tocList.querySelectorAll('.toc-link');
+		if (!links.length) return;
+
+		const slugs = Array.from(links).map(link => link.getAttribute('data-slug'));
+		const headings = slugs.map(slug => document.getElementById(slug)).filter(Boolean);
+
+		if (!headings.length) return;
+
+		let ticking = false;
+
+		function updateActive() {
+			const scrollY = window.scrollY;
+			const offset = 100; // Account for sticky header
+
+			let activeIndex = 0;
+
+			for (let i = 0; i < headings.length; i++) {
+				const heading = headings[i];
+				if (heading.offsetTop - offset <= scrollY) {
+					activeIndex = i;
+				}
+			}
+
+			links.forEach((link, i) => {
+				if (i === activeIndex) {
+					link.classList.add('active');
+				} else {
+					link.classList.remove('active');
+				}
+			});
+		}
+
+		function onScroll() {
+			if (!ticking) {
+				requestAnimationFrame(() => {
+					updateActive();
+					ticking = false;
+				});
+				ticking = true;
+			}
+		}
+
+		window.addEventListener('scroll', onScroll, { passive: true });
+		updateActive();
+
+		document.addEventListener('astro:before-swap', () => {
+			window.removeEventListener('scroll', onScroll);
+		});
+	})();
+</script>

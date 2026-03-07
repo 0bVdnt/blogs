@@ -1,0 +1,5 @@
+# public/robots.txt
+User-agent: *
+Allow: /
+
+Sitemap: https://0bVdnt.github.io/blogs/sitemap-index.xml

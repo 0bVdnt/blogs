@@ -1,0 +1,366 @@
+---
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
+---
+
+<div class="search-container">
+	<button class="search-trigger" id="search-trigger" aria-label="Search posts" title="Search (/)">
+		<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+			<circle cx="11" cy="11" r="8"/>
+			<path d="m21 21-4.3-4.3"/>
+		</svg>
+	</button>
+</div>
+
+<div class="search-modal" id="search-modal" hidden>
+	<div class="search-backdrop"></div>
+	<div class="search-dialog" role="dialog" aria-modal="true" aria-label="Search posts">
+		<div class="search-input-wrapper">
+			<svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<circle cx="11" cy="11" r="8"/>
+				<path d="m21 21-4.3-4.3"/>
+			</svg>
+			<input 
+				type="text" 
+				class="search-input" 
+				id="search-input" 
+				placeholder="Search posts..."
+				autocomplete="off"
+			/>
+			<kbd class="search-kbd">ESC</kbd>
+		</div>
+		<div class="search-results" id="search-results">
+			<div class="search-empty">
+				<p>Start typing to search...</p>
+			</div>
+		</div>
+	</div>
+</div>
+
+<style>
+	.search-container {
+		display: flex;
+	}
+
+    .search-trigger {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: transparent;
+        border: none;
+        border-radius: 6px;
+        color: var(--subtext0);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        padding: 0;
+    }
+
+    .search-trigger:hover {
+        color: var(--accent);
+        background: var(--card-bg);
+    }
+
+	.search-modal {
+		position: fixed;
+		inset: 0;
+		z-index: 1000;
+		display: flex;
+		align-items: flex-start;
+		justify-content: center;
+		padding-top: 15vh;
+		opacity: 0;
+		visibility: hidden;
+		transition: opacity 0.2s ease, visibility 0.2s ease;
+	}
+
+	.search-modal[data-visible="true"] {
+		opacity: 1;
+		visibility: visible;
+	}
+
+	.search-backdrop {
+		position: absolute;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.6);
+		backdrop-filter: blur(4px);
+		-webkit-backdrop-filter: blur(4px);
+	}
+
+	.search-dialog {
+		position: relative;
+		width: 100%;
+		max-width: 560px;
+		margin: 0 1rem;
+		background: var(--mantle);
+		border: 1px solid var(--surface1);
+		border-radius: 16px;
+		box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+		overflow: hidden;
+		transform: scale(0.95) translateY(-10px);
+		transition: transform 0.2s ease;
+	}
+
+	.search-modal[data-visible="true"] .search-dialog {
+		transform: scale(1) translateY(0);
+	}
+
+	.search-input-wrapper {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 1rem 1.25rem;
+		border-bottom: 1px solid var(--surface0);
+	}
+
+	.search-icon {
+		color: var(--overlay1);
+		flex-shrink: 0;
+	}
+
+	.search-input {
+		flex: 1;
+		background: none;
+		border: none;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 1em;
+		color: var(--text);
+		outline: none;
+	}
+
+	.search-input::placeholder {
+		color: var(--overlay0);
+	}
+
+	.search-kbd {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.7em;
+		color: var(--overlay1);
+		background: var(--surface0);
+		border: 1px solid var(--surface1);
+		border-radius: 4px;
+		padding: 0.2em 0.5em;
+	}
+
+	.search-results {
+		max-height: 400px;
+		overflow-y: auto;
+	}
+
+	.search-empty {
+		padding: 2rem;
+		text-align: center;
+		color: var(--subtext0);
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.9em;
+	}
+
+	.search-result {
+		display: block;
+		padding: 1rem 1.25rem;
+		border-bottom: 1px solid var(--surface0);
+		text-decoration: none;
+		transition: background 0.15s ease;
+	}
+
+	.search-result:last-child {
+		border-bottom: none;
+	}
+
+	.search-result:hover,
+	.search-result.selected {
+		background: var(--surface0);
+		text-decoration: none;
+	}
+
+	.search-result-title {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.95em;
+		font-weight: 600;
+		color: var(--text);
+		margin: 0;
+	}
+
+	.search-result:hover .search-result-title,
+	.search-result.selected .search-result-title {
+		color: var(--accent);
+	}
+
+	.search-result-description {
+		font-size: 0.85em;
+		color: var(--subtext0);
+		margin: 0.25em 0 0;
+		line-height: 1.4;
+	}
+
+	.search-result-meta {
+		display: flex;
+		gap: 0.75em;
+		margin-top: 0.5em;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.7em;
+		color: var(--overlay1);
+	}
+
+	.search-no-results {
+		padding: 2rem;
+		text-align: center;
+	}
+
+	.search-no-results p {
+		color: var(--subtext0);
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.9em;
+		margin: 0;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.search-modal,
+		.search-dialog {
+			transition: none;
+		}
+	}
+</style>
+
+<script is:inline define:vars={{ base }}>
+	(function () {
+		const trigger = document.getElementById('search-trigger');
+		const modal = document.getElementById('search-modal');
+		const input = document.getElementById('search-input');
+		const results = document.getElementById('search-results');
+		
+		if (!trigger || !modal || !input || !results) return;
+
+		let posts = [];
+		let selectedIndex = -1;
+
+		// Fetch posts data
+		async function loadPosts() {
+			if (posts.length) return;
+			try {
+				const res = await fetch(base + 'api/posts.json');
+				posts = await res.json();
+			} catch (err) {
+				console.error('Failed to load posts:', err);
+			}
+		}
+
+		function showModal() {
+			loadPosts();
+			modal.hidden = false;
+			requestAnimationFrame(() => {
+				modal.setAttribute('data-visible', 'true');
+				input.focus();
+			});
+		}
+
+		function hideModal() {
+			modal.setAttribute('data-visible', 'false');
+			setTimeout(() => {
+				modal.hidden = true;
+				input.value = '';
+				renderEmpty();
+			}, 200);
+		}
+
+		function renderEmpty() {
+			results.innerHTML = `<div class="search-empty"><p>Start typing to search...</p></div>`;
+			selectedIndex = -1;
+		}
+
+		function renderResults(filtered) {
+			if (filtered.length === 0) {
+				results.innerHTML = `<div class="search-no-results"><p>No posts found.</p></div>`;
+				selectedIndex = -1;
+				return;
+			}
+
+			results.innerHTML = filtered.map((post, i) => `
+				<a href="${post.link}" class="search-result${i === 0 ? ' selected' : ''}" data-index="${i}">
+					<h4 class="search-result-title">${post.title}</h4>
+					${post.description ? `<p class="search-result-description">${post.description}</p>` : ''}
+					<div class="search-result-meta">
+						<span>${post.date}</span>
+					</div>
+				</a>
+			`).join('');
+			
+			selectedIndex = 0;
+		}
+
+		function updateSelection(newIndex, resultEls) {
+			if (resultEls.length === 0) return;
+			
+			resultEls.forEach((el, i) => {
+				el.classList.toggle('selected', i === newIndex);
+			});
+			
+			selectedIndex = newIndex;
+			resultEls[newIndex]?.scrollIntoView({ block: 'nearest' });
+		}
+
+		function search(query) {
+			const q = query.toLowerCase().trim();
+			if (!q) {
+				renderEmpty();
+				return;
+			}
+
+			const filtered = posts.filter(post => 
+				post.title.toLowerCase().includes(q) ||
+				post.description?.toLowerCase().includes(q)
+			);
+
+			renderResults(filtered);
+		}
+
+		// Event listeners
+		trigger.addEventListener('click', showModal);
+
+		modal.querySelector('.search-backdrop').addEventListener('click', hideModal);
+
+		input.addEventListener('input', (e) => {
+			search(e.target.value);
+		});
+
+		input.addEventListener('keydown', (e) => {
+			const resultEls = results.querySelectorAll('.search-result');
+			
+			if (e.key === 'Escape') {
+				e.preventDefault();
+				hideModal();
+			} else if (e.key === 'ArrowDown') {
+				e.preventDefault();
+				if (resultEls.length) {
+					updateSelection((selectedIndex + 1) % resultEls.length, resultEls);
+				}
+			} else if (e.key === 'ArrowUp') {
+				e.preventDefault();
+				if (resultEls.length) {
+					updateSelection((selectedIndex - 1 + resultEls.length) % resultEls.length, resultEls);
+				}
+			} else if (e.key === 'Enter') {
+				e.preventDefault();
+				if (selectedIndex >= 0 && resultEls[selectedIndex]) {
+					resultEls[selectedIndex].click();
+				}
+			}
+		});
+
+		// Global keyboard shortcut
+		document.addEventListener('keydown', (e) => {
+			if (e.target.matches('input, textarea, [contenteditable]')) return;
+			if (e.ctrlKey || e.metaKey || e.altKey) return;
+			
+			if (e.key === '/' && modal.hidden) {
+				e.preventDefault();
+				showModal();
+			}
+		});
+
+		// Cleanup
+		document.addEventListener('astro:before-swap', () => {
+			hideModal();
+		});
+	})();
+</script>

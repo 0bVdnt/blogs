@@ -10,18 +10,21 @@ interface Props {
 const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const { title, description } = Astro.props;
+const ogImage = new URL(`${base}og-image.svg`, Astro.site);
 ---
 
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
-<link rel="icon" href={`${base}favicon.svg`} />
 <link rel="sitemap" href={`${base}sitemap-index.xml`} />
+<link rel="manifest" href={`${base}manifest.json`} />
+<meta name="theme-color" content="#cba6f7" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" content="#8839ef" media="(prefers-color-scheme: light)" />
 <link
 	rel="alternate"
 	type="application/rss+xml"
 	title={SITE_TITLE}
-	href={new URL('rss.xml', Astro.site)}
+	href={new URL(`${base}rss.xml`, Astro.site)}
 />
 <meta name="generator" content={Astro.generator} />
 
@@ -47,11 +50,15 @@ const { title, description } = Astro.props;
 <meta property="og:url" content={Astro.url} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
 
-<meta property="twitter:card" content="summary" />
+<meta property="twitter:card" content="summary_large_image" />
 <meta property="twitter:url" content={Astro.url} />
 <meta property="twitter:title" content={title} />
 <meta property="twitter:description" content={description} />
+<meta property="twitter:image" content={ogImage} />
 
 <!-- Inline theme script to prevent flash -->
 <script is:inline>

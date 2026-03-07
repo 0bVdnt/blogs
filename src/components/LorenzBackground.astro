@@ -1,7 +1,3 @@
----
-// LorenzBackground.astro
----
-
 <canvas id="lorenz-canvas" aria-hidden="true"></canvas>
 
 <style>
@@ -13,7 +9,7 @@
 		height: 100%;
 		z-index: -1;
 		pointer-events: none;
-		opacity: 0.6; /* Adjust for subtlety */
+		opacity: 0.6;
 		transition: opacity 1s ease;
 	}
 </style>
@@ -22,51 +18,51 @@
 	class LorenzAttractor {
 		canvas: HTMLCanvasElement;
 		ctx: CanvasRenderingContext2D;
-		
-		// Position
+
 		x = 0.01;
 		y = 0;
 		z = 0;
-		
-		// Constants
+
 		sigma = 10;
 		rho = 28;
 		beta = 8.0 / 3.0;
-		
-		scale = 12; // Adjust base scale
+
+		scale = 12;
 		points: {x: number, y: number, z: number}[] = [];
 		maxPoints = 800;
-		dt = 0.01; // Time step
-		
+		dt = 0.01;
+
 		width = 0;
 		height = 0;
-		
+
 		animationFrameId = 0;
 		colorMap: string[] = [];
 		isDarkMode = true;
 
+		private handleResize: () => void;
+
 		constructor(canvasElement: HTMLCanvasElement) {
 			this.canvas = canvasElement;
 			this.ctx = canvasElement.getContext('2d')!;
+
+			this.handleResize = () => this.resize();
 			this.resize();
-			window.addEventListener('resize', () => this.resize());
-			
+			window.addEventListener('resize', this.handleResize);
+
 			this.initThemeListener();
 			this.updateColors();
 			this.animate();
 		}
 
 		initThemeListener() {
-			// Check initial theme from document element
 			const determineTheme = () => {
 				const currentTheme = document.documentElement.getAttribute('data-theme');
 				if (currentTheme) return currentTheme === 'mocha';
 				return window.matchMedia('(prefers-color-scheme: dark)').matches;
 			};
-			
+
 			this.isDarkMode = determineTheme();
 
-			// Listen for mutations on data-theme
 			const observer = new MutationObserver((mutations) => {
 				for (const mutation of mutations) {
 					if (mutation.attributeName === 'data-theme') {
@@ -76,8 +72,7 @@
 				}
 			});
 			observer.observe(document.documentElement, { attributes: true });
-			
-			// Listen for system theme changes
+
 			window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
 				if (!document.documentElement.hasAttribute('data-theme')) {
 					this.isDarkMode = e.matches;
@@ -87,12 +82,9 @@
 		}
 
 		updateColors() {
-			// Precompute a gradient from Catppuccin Mauve to Blue / Rosewater to Pink based on depth
 			if (this.isDarkMode) {
-				// Mocha: Mauve (203, 166, 247) to Blue (137, 180, 250)
 				this.colorMap = this.generateGradient([203, 166, 247], [137, 180, 250], 100);
 			} else {
-				// Latte: Mauve (136, 57, 239) to Blue (30, 102, 245)
 				this.colorMap = this.generateGradient([136, 57, 239], [30, 102, 245], 100);
 			}
 		}
@@ -103,7 +95,6 @@
 				let r = color1[0] + ((color2[0] - color1[0]) * (i / steps));
 				let g = color1[1] + ((color2[1] - color1[1]) * (i / steps));
 				let b = color1[2] + ((color2[2] - color1[2]) * (i / steps));
-				// Adjust opacity down a bit for overlapping points
 				gradient.push(`rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, 0.4)`);
 			}
 			return gradient;
@@ -114,72 +105,59 @@
 			this.height = window.innerHeight;
 			this.canvas.width = this.width;
 			this.canvas.height = this.height;
-			
-			// Adjust scale dynamically based on screen size so it stays proportional
+
 			const minDim = Math.min(this.width, this.height);
-			this.scale = minDim / 45; // Magic number for nice framing
+			this.scale = minDim / 45;
 		}
 
 		step() {
 			const dx = (this.sigma * (this.y - this.x)) * this.dt;
 			const dy = (this.x * (this.rho - this.z) - this.y) * this.dt;
 			const dz = (this.x * this.y - this.beta * this.z) * this.dt;
-			
+
 			this.x += dx;
 			this.y += dy;
 			this.z += dz;
-			
+
 			this.points.push({ x: this.x, y: this.y, z: this.z });
-			
+
 			if (this.points.length > this.maxPoints) {
 				this.points.shift();
 			}
 		}
 
 		animate() {
-			// Clear canvas
 			this.ctx.clearRect(0, 0, this.width, this.height);
-			
-			// Compute next point
-			// Run a few steps per frame for faster drawing without increasing dt (which causes instability)
+
 			for(let i=0; i<3; i++) {
 				this.step();
 			}
 
-			// Render points
 			this.ctx.lineWidth = 1.5;
 			this.ctx.lineCap = 'round';
 			this.ctx.lineJoin = 'round';
-			
-			// Center points
+
 			const cx = this.width / 2;
-			// Z is strictly positive in Lorenz, usually ranging from 0 to 50. Center roughly around z=25.
 			const cy = this.height / 2 + (25 * this.scale * 1.0);
 
 			if (this.points.length > 1) {
 				for (let i = 0; i < this.points.length - 1; i++) {
 					const p1 = this.points[i];
 					const p2 = this.points[i + 1];
-					
-					// 3D to 2D projection (simply dropping Y to make it look top-down/isometric-ish)
-					// Standard appealing view maps X->X and Z->Y
+
 					const screenX1 = cx + (p1.x * this.scale);
-					const screenY1 = cy - (p1.z * this.scale); 
+					const screenY1 = cy - (p1.z * this.scale);
 					const screenX2 = cx + (p2.x * this.scale);
 					const screenY2 = cy - (p2.z * this.scale);
 
-					// Determine color based on depth (Z)
-					// Z usually ranges from 0 to 50
 					let colorIndex = Math.max(0, Math.min(99, Math.floor((p1.z / 50) * 100)));
-					
-					// Fade out older points (tail fading effect)
+
 					const ageAlpha = i / this.points.length;
-					
+
 					this.ctx.beginPath();
 					this.ctx.moveTo(screenX1, screenY1);
 					this.ctx.lineTo(screenX2, screenY2);
-					
-					// Extract RGB from color map string and add alpha
+
 					const baseColorStr = this.colorMap[colorIndex];
 					const rgbaMatch = baseColorStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
 					if (rgbaMatch) {
@@ -187,7 +165,7 @@
 					} else {
 						this.ctx.strokeStyle = baseColorStr;
 					}
-					
+
 					this.ctx.stroke();
 				}
 			}
@@ -197,15 +175,13 @@
 
 		destroy() {
 			cancelAnimationFrame(this.animationFrameId);
-			window.removeEventListener('resize', this.resize);
+			window.removeEventListener('resize', this.handleResize);
 		}
 	}
 
-	// Initialize on load and re-init on Astro page transitions
 	let attractor: LorenzAttractor | null = null;
-	
+
 	function init() {
-		// Respect user's motion preferences
 		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
 			return;
 		}

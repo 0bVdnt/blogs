@@ -1,7 +1,7 @@
 ---
 ---
 
-<canvas id="particle-canvas" class="particle-canvas"></canvas>
+<canvas id="particle-canvas" class="particle-canvas" aria-hidden="true"></canvas>
 
 <style>
 	.particle-canvas {
@@ -10,7 +10,7 @@
 		left: 0;
 		width: 100%;
 		height: 100%;
-		z-index: -1;
+		z-index: -3;
 		pointer-events: none;
 		opacity: 0.35;
 	}
@@ -64,7 +64,6 @@
 	function drawParticle(p, colors) {
 		ctx.beginPath();
 		if (p.isNode) {
-			// Draw a "node" — small square like a circuit node
 			const s = p.radius + 1;
 			ctx.rect(p.x - s / 2, p.y - s / 2, s, s);
 			ctx.fillStyle = colors.nodeGlow;
@@ -107,7 +106,6 @@
 			p.x += p.vx;
 			p.y += p.vy;
 
-			// Wrap around edges
 			if (p.x < 0) p.x = width;
 			if (p.x > width) p.x = 0;
 			if (p.y < 0) p.y = height;
@@ -120,26 +118,28 @@
 		animationId = requestAnimationFrame(animate);
 	}
 
+	function handleResize() {
+		resize();
+		createParticles();
+	}
+
+	function cleanup() {
+		cancelAnimationFrame(animationId);
+		window.removeEventListener('resize', handleResize);
+	}
+
 	function init() {
 		resize();
 		createParticles();
 		animate();
 	}
 
-	// Use IntersectionObserver to pause when not visible
-	window.addEventListener('resize', () => {
-		resize();
-		createParticles();
-	});
+	window.addEventListener('resize', handleResize);
 
-	// Reduce motion preference
 	if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
 		init();
 	}
 
-	// Cleanup on page navigation (Astro)
-	document.addEventListener('astro:before-swap', () => {
-		cancelAnimationFrame(animationId);
-	});
+	document.addEventListener('astro:before-swap', cleanup);
 })();
 </script>
