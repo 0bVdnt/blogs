@@ -154,13 +154,14 @@ const totalReadingTime = Math.ceil(totalWords / 200);
 
 			.cursor {
 				display: inline-block;
-				width: 2px;
-				height: 0.85em;
+				width: 3px;
+				height: 1em;
 				background: var(--green);
-				margin-left: 4px;
+				margin-left: 2px;
 				animation: blink 1s step-end infinite;
-				vertical-align: text-bottom;
+				vertical-align: middle;
 				box-shadow: 0 0 8px var(--green);
+				border-radius: 1px;
 			}
 
 			@keyframes blink {

@@ -8,12 +8,11 @@
 <style>
 	.reading-progress-container {
 		position: fixed;
-		top: 0;
+		top: 64px;
 		left: 0;
 		right: 0;
 		height: 3px;
-		z-index: 200;
-		background: transparent;
+		z-index: 99;
 	}
 
 	.reading-progress-bar {
@@ -36,6 +35,12 @@
 			animation: none;
 			background: var(--accent);
 			transition: none;
+		}
+	}
+
+	@media (max-width: 720px) {
+		.reading-progress-container 
+			top: 56px;
 		}
 	}
 </style>

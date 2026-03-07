@@ -15,19 +15,24 @@ const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
 
 {tocHeadings.length > 0 && (
 	<nav class="toc" aria-label="Table of contents">
-		<div class="toc-header">
-			<span class="toc-icon">
-				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<line x1="8" y1="6" x2="21" y2="6"></line>
-					<line x1="8" y1="12" x2="21" y2="12"></line>
-					<line x1="8" y1="18" x2="21" y2="18"></line>
-					<line x1="3" y1="6" x2="3.01" y2="6"></line>
-					<line x1="3" y1="12" x2="3.01" y2="12"></line>
-					<line x1="3" y1="18" x2="3.01" y2="18"></line>
-				</svg>
+		<button class="toc-toggle" id="toc-toggle" aria-expanded="true">
+			<span class="toc-toggle-left">
+				<span class="toc-icon">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<line x1="8" y1="6" x2="21" y2="6"></line>
+						<line x1="8" y1="12" x2="21" y2="12"></line>
+						<line x1="8" y1="18" x2="21" y2="18"></line>
+						<line x1="3" y1="6" x2="3.01" y2="6"></line>
+						<line x1="3" y1="12" x2="3.01" y2="12"></line>
+						<line x1="3" y1="18" x2="3.01" y2="18"></line>
+					</svg>
+				</span>
+				<span class="toc-title">Contents</span>
 			</span>
-			<span class="toc-title">Contents</span>
-		</div>
+			<svg class="toc-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<polyline points="6 9 12 15 18 9"/>
+			</svg>
+		</button>
 		<ul class="toc-list" id="toc-list">
 			{tocHeadings.map((heading) => (
 				<li class={`toc-item toc-depth-${heading.depth}`}>
@@ -45,19 +50,34 @@ const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
 		background: var(--card-bg);
 		border: 1px solid var(--card-border);
 		border-radius: 12px;
-		padding: 1.25rem 1.5rem;
 		margin: 2rem 0;
 		backdrop-filter: blur(8px);
 		-webkit-backdrop-filter: blur(8px);
+		overflow: hidden;
+		padding: 0;
 	}
 
-	.toc-header {
+	.toc-toggle {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		width: 100%;
+		padding: 1rem 1.25rem;
+		background: none;
+		border: none;
+		cursor: pointer;
+		color: var(--text);
+		transition: background 0.15s ease;
+	}
+
+	.toc-toggle:hover {
+		background: var(--surface0);
+	}
+
+	.toc-toggle-left {
 		display: flex;
 		align-items: center;
 		gap: 0.5em;
-		margin-bottom: 1rem;
-		padding-bottom: 0.75rem;
-		border-bottom: 1px solid var(--surface0);
 	}
 
 	.toc-icon {
@@ -69,15 +89,39 @@ const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
 		font-family: "JetBrains Mono", monospace;
 		font-size: 0.85em;
 		font-weight: 600;
-		color: var(--text);
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
+	}
+
+	.toc-chevron {
+		color: var(--overlay1);
+		transition: transform 0.2s ease;
+		flex-shrink: 0;
+	}
+
+	.toc-toggle[aria-expanded="true"] .toc-chevron {
+		transform: rotate(180deg);
 	}
 
 	.toc-list {
 		list-style: none;
 		margin: 0;
-		padding: 0;
+		padding: 0.75rem 1.25rem 1rem;
+		border-top: 1px solid var(--surface0);
+		overflow: hidden;
+		max-height: 600px;
+		transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.2s ease, border-color 0.2s ease;
+		opacity: 1;
+	}
+
+	.toc-list.collapsed {
+		max-height: 0;
+		padding-top: 0;
+		padding-bottom: 0;
+		margin: 0;
+		border-top-width: 0;
+		opacity: 0;
+		visibility: hidden;
 	}
 
 	.toc-item {
@@ -90,7 +134,7 @@ const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
 	}
 
 	.toc-depth-2:first-child {
-		margin-top: 0;
+		margin-top: 0.75em;
 	}
 
 	.toc-depth-3 {
@@ -139,8 +183,12 @@ const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
 	}
 
 	@media (max-width: 720px) {
-		.toc {
-			padding: 1rem 1.25rem;
+		.toc-toggle {
+			padding: 0.85rem 1rem;
+		}
+
+		.toc-list {
+			padding: 0 1rem 1rem;
 		}
 
 		.toc-link {
@@ -149,7 +197,9 @@ const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.toc-link {
+		.toc-link,
+		.toc-chevron,
+		.toc-list {
 			transition: none;
 		}
 	}
@@ -157,9 +207,18 @@ const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
 
 <script is:inline>
 	(function () {
+		// --- Collapsible TOC ---
+		const tocToggle = document.getElementById('toc-toggle');
 		const tocList = document.getElementById('toc-list');
-		if (!tocList) return;
+		if (!tocToggle || !tocList) return;
 
+		tocToggle.addEventListener('click', () => {
+			const isExpanded = tocToggle.getAttribute('aria-expanded') === 'true';
+			tocToggle.setAttribute('aria-expanded', !isExpanded);
+			tocList.classList.toggle('collapsed', isExpanded);
+		});
+
+		// --- Active heading tracking ---
 		const links = tocList.querySelectorAll('.toc-link');
 		if (!links.length) return;
 
@@ -172,7 +231,7 @@ const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
 
 		function updateActive() {
 			const scrollY = window.scrollY;
-			const offset = 100; // Account for sticky header
+			const offset = 100;
 
 			let activeIndex = 0;
 

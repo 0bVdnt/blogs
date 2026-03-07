@@ -5,8 +5,6 @@ import CopyCodeButton from '../components/CopyCodeButton.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
-import LorenzBackground from '../components/LorenzBackground.astro';
-import ParticleBackground from '../components/ParticleBackground.astro';
 import PostMeta from '../components/PostMeta.astro';
 import PostNavigation from '../components/PostNavigation.astro';
 import ReadingProgress from '../components/ReadingProgress.astro';
@@ -15,7 +13,6 @@ import ScrollToTop from '../components/ScrollToTop.astro';
 import ShareButtons from '../components/ShareButtons.astro';
 import TableOfContents from '../components/TableOfContents.astro';
 import TagList from '../components/TagList.astro';
-import TorusKnotBackground from '../components/TorusKnotBackground.astro';
 
 interface Heading {
 	depth: number;
@@ -104,15 +101,18 @@ const fullUrl = new URL(Astro.url.pathname, Astro.site).toString();
 				font-size: 0.82em;
 				color: var(--subtext0);
 				text-decoration: none;
-				padding: 0.4em 0.8em;
+				padding: 0.5em 0.9em;
 				border-radius: 8px;
+				border: 1px solid var(--surface0);
+				background: var(--card-bg);
 				transition: all 0.2s ease;
 				margin-bottom: 2em;
 			}
 
 			.back-link:hover {
 				color: var(--accent);
-				background: var(--card-bg);
+				border-color: var(--accent);
+				background: var(--surface0);
 				text-decoration: none;
 			}
 
@@ -154,61 +154,66 @@ const fullUrl = new URL(Astro.url.pathname, Astro.site).toString();
 				animation: fadeInUp 0.4s ease forwards;
 			}
 
-			.date-info {
-				display: inline-flex;
+			.post-meta-row {
+				display: flex;
 				align-items: center;
+				justify-content: center;
 				gap: 0.5em;
-				font-family: "JetBrains Mono", monospace;
-				font-size: 0.75em;
-				color: var(--subtext0);
-				background: var(--card-bg);
-				padding: 0.4em 1em;
-				border-radius: 20px;
-				border: 1px solid var(--card-border);
 				margin-bottom: 1.25em;
 				flex-wrap: wrap;
-				justify-content: center;
 			}
 
-			.date-dot {
-				width: 6px;
-				height: 6px;
-				border-radius: 50%;
-				background: var(--green);
-				animation: glow-pulse 2s ease-in-out infinite;
-			}
-
-			.date-separator {
-				color: var(--overlay0);
-			}
-
-			.reading-time {
+			.meta-badge {
 				display: inline-flex;
 				align-items: center;
-				gap: 0.3em;
+				gap: 0.35em;
+				font-family: "JetBrains Mono", monospace;
+				font-size: 0.73em;
+				color: var(--subtext0);
+				background: var(--card-bg);
+				padding: 0.35em 0.75em;
+				border-radius: 6px;
+				border: 1px solid var(--card-border);
+				white-space: nowrap;
 			}
 
-			.reading-time svg {
+			.meta-badge svg {
 				flex-shrink: 0;
+				width: 12px;
+				height: 12px;
 			}
 
-			.word-count {
-				color: var(--overlay1);
+			.meta-badge.date-badge {
+				color: var(--mauve);
+				border-color: rgba(203, 166, 247, 0.15);
+				background: rgba(203, 166, 247, 0.1);
 			}
 
-			.last-updated-on {
-				color: var(--overlay1);
+			:global([data-theme="latte"]) .meta-badge.date-badge {
+				color: var(--mauve);
+				background: rgba(136, 57, 239, 0.08);
+				border-color: rgba(136, 57, 239, 0.15);
+			}
+
+			.meta-badge.updated-badge {
+				color: var(--peach);
+				border-color: rgba(250, 179, 135, 0.15);
+				background: rgba(250, 179, 135, 0.1);
+			}
+
+			:global([data-theme="latte"]) .meta-badge.updated-badge {
+				color: var(--peach);
+				background: rgba(254, 100, 11, 0.08);
+				border-color: rgba(254, 100, 11, 0.15);
 			}
 
 			.article-header h1 {
 				font-size: 2.2em;
 				margin: 0 0 0.3em;
 				background: linear-gradient(135deg, var(--mauve), var(--blue), var(--lavender));
-				background-size: 200% 200%;
 				-webkit-background-clip: text;
 				-webkit-text-fill-color: transparent;
 				background-clip: text;
-				animation: gradient-shift 6s ease infinite;
 			}
 
 			.article-tags {
@@ -304,9 +309,6 @@ const fullUrl = new URL(Astro.url.pathname, Astro.site).toString();
 
 	<body>
 		<ReadingProgress />
-		<ParticleBackground />
-		<LorenzBackground />
-		<TorusKnotBackground />
 		<Header />
 		<main id="main-content">
 			<article>
@@ -323,23 +325,24 @@ const fullUrl = new URL(Astro.url.pathname, Astro.site).toString();
 					)}
 					
 					<header class="article-header">
-						<div class="date-info">
-							<span class="date-dot"></span>
-							<FormattedDate date={pubDate} />
-							<span class="date-separator">·</span>
-							<span class="reading-time">
-								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+						<div class="post-meta-row">
+							<span class="meta-badge date-badge">
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+								<FormattedDate date={pubDate} />
+							</span>
+							<span class="meta-badge">
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
 								{readingTime}
 							</span>
-							<span class="date-separator">·</span>
-							<span class="word-count">{wordCount.toLocaleString()} words</span>
+							<span class="meta-badge">
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+								{wordCount.toLocaleString()} words
+							</span>
 							{showUpdated && (
-								<>
-									<span class="date-separator">·</span>
-									<span class="last-updated-on">
-										{isFileModified ? 'Modified' : 'Updated'} <FormattedDate date={displayUpdatedDate!} />
-									</span>
-								</>
+								<span class="meta-badge updated-badge">
+									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+									{isFileModified ? 'Modified' : 'Updated'} <FormattedDate date={displayUpdatedDate!} />
+								</span>
 							)}
 						</div>
 						<h1>{title}</h1>

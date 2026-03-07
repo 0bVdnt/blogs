@@ -145,73 +145,125 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 	.search-results {
 		max-height: 400px;
 		overflow-y: auto;
+		padding: 0.75rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
 	}
 
-	.search-empty {
-		padding: 2rem;
+	:global([data-theme="latte"]) .search-dialog {
+		border-color: var(--surface2);
+		box-shadow: 0 24px 64px rgba(76, 79, 105, 0.2);
+	}
+
+	:global([data-theme="latte"]) .search-backdrop {
+		background: rgba(76, 79, 105, 0.35);
+	}
+
+	:global([data-theme="latte"]) .search-input-wrapper {
+		border-bottom-color: var(--surface1);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.search-modal,
+		.search-dialog {
+			transition: none;
+		}
+	}
+</style>
+
+<style is:global>
+	.search-results .search-empty {
+		padding: 2rem 1rem;
 		text-align: center;
 		color: var(--subtext0);
 		font-family: "JetBrains Mono", monospace;
-		font-size: 0.9em;
+		font-size: 0.85em;
 	}
 
-	.search-result {
+	.search-results .search-empty p {
+		margin: 0;
+	}
+
+	.search-results a.search-result {
 		display: block;
-		padding: 1rem 1.25rem;
-		border-bottom: 1px solid var(--surface0);
+		padding: 0.75rem 1rem;
+		border: 1px solid transparent;
+		border-radius: 8px;
 		text-decoration: none;
-		transition: background 0.15s ease;
+		color: var(--text) !important;
+		transition: all 0.15s ease;
 	}
 
-	.search-result:last-child {
-		border-bottom: none;
+	.search-results a.search-result:hover {
+		text-decoration: none;
+		color: var(--text) !important;
 	}
 
-	.search-result:hover,
-	.search-result.selected {
+	.search-results .search-result:hover,
+	.search-results .search-result.selected {
 		background: var(--surface0);
-		text-decoration: none;
+		border-color: var(--surface1);
 	}
 
-	.search-result-title {
-		font-family: "JetBrains Mono", monospace;
+	.search-results .search-result-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: 1rem;
+		margin-bottom: 0.35rem;
+	}
+
+	.search-results .search-result-title {
+		font-family: inherit;
 		font-size: 0.95em;
 		font-weight: 600;
 		color: var(--text);
 		margin: 0;
+		line-height: 1.3;
 	}
 
-	.search-result:hover .search-result-title,
-	.search-result.selected .search-result-title {
+	.search-results .search-result:hover .search-result-title,
+	.search-results .search-result.selected .search-result-title {
 		color: var(--accent);
 	}
 
-	.search-result-description {
-		font-size: 0.85em;
-		color: var(--subtext0);
-		margin: 0.25em 0 0;
-		line-height: 1.4;
-	}
-
-	.search-result-meta {
-		display: flex;
-		gap: 0.75em;
-		margin-top: 0.5em;
+	.search-results .search-result-date {
 		font-family: "JetBrains Mono", monospace;
 		font-size: 0.7em;
-		color: var(--overlay1);
+		color: var(--overlay0);
+		white-space: nowrap;
+		margin-top: 0.15em;
 	}
 
-	.search-no-results {
+	.search-results .search-result-description {
+		display: block;
+		font-size: 0.82em;
+		color: var(--subtext0);
+		margin: 0;
+		line-height: 1.5;
+		white-space: normal;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+	}
+
+	.search-results .search-no-results {
 		padding: 2rem;
 		text-align: center;
 	}
 
-	.search-no-results p {
+	.search-results .search-no-results p {
 		color: var(--subtext0);
 		font-family: "JetBrains Mono", monospace;
 		font-size: 0.9em;
 		margin: 0;
+	}
+
+	:global([data-theme="latte"]) .search-input-wrapper {
+		border-bottom-color: var(--surface1);
 	}
 
 	@media (prefers-reduced-motion: reduce) {
@@ -277,11 +329,11 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 
 			results.innerHTML = filtered.map((post, i) => `
 				<a href="${post.link}" class="search-result${i === 0 ? ' selected' : ''}" data-index="${i}">
-					<h4 class="search-result-title">${post.title}</h4>
-					${post.description ? `<p class="search-result-description">${post.description}</p>` : ''}
-					<div class="search-result-meta">
-						<span>${post.date}</span>
+					<div class="search-result-header">
+						<span class="search-result-title">${post.title}</span>
+						<span class="search-result-date">${post.date}</span>
 					</div>
+					${post.description ? `<p class="search-result-description">${post.description}</p>` : ''}
 				</a>
 			`).join('');
 			
@@ -349,6 +401,13 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 
 		// Global keyboard shortcut
 		document.addEventListener('keydown', (e) => {
+			// ESC closes search from anywhere
+			if (e.key === 'Escape' && !modal.hidden) {
+				e.preventDefault();
+				hideModal();
+				return;
+			}
+
 			if (e.target.matches('input, textarea, [contenteditable]')) return;
 			if (e.ctrlKey || e.metaKey || e.altKey) return;
 			
@@ -363,4 +422,4 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 			hideModal();
 		});
 	})();
-</script>
+</script> 

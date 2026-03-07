@@ -30,5 +30,3 @@ Expect deep-dives into:
 3. **Project breakdowns** — How I built things, what I learned, what I'd do differently
 
 Stay tuned.
-
-`EOF`

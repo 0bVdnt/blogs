@@ -55,5 +55,3 @@ Theme switching persists to `localStorage` and respects system preferences on fi
 3. **Accessibility matters** — Skip links, focus states, and motion preferences aren't optional
 
 The full source is on [GitHub](https://github.com/0bVdnt/blogs).
-
-`EOF`

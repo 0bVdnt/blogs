@@ -3,6 +3,7 @@ import { SITE_TITLE } from '../consts';
 import HeaderLink from './HeaderLink.astro';
 import KeyboardShortcuts from './KeyboardShortcuts.astro';
 import ThemeToggle from './ThemeToggle.astro';
+import Search from './Search.astro';
 const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 ---
 
@@ -15,12 +16,20 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 			</a></h2>
 		</div>
 		<div class="nav-center">
-			<HeaderLink href={base}>Blog</HeaderLink>
+			<HeaderLink href={base}>Blogs</HeaderLink>
 			<HeaderLink href={`${base}tags`}>Tags</HeaderLink>
 			<HeaderLink href={`${base}about`}>About</HeaderLink>
 		</div>
 		<div class="nav-right">
+			<Search />
 			<ThemeToggle />
+			<a href={`${base}rss.xml`} class="social-link" aria-label="RSS Feed">
+				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<path d="M4 11a9 9 0 0 1 9 9"/>
+					<path d="M4 4a16 16 0 0 1 16 16"/>
+					<circle cx="5" cy="19" r="1"/>
+				</svg>
+			</a>
 			<a href="https://github.com/0bVdnt" target="_blank" rel="noopener noreferrer" class="social-link">
 				<span class="sr-only">Go to 0bVdnt's GitHub</span>
 				<svg viewBox="0 0 16 16" aria-hidden="true" width="24" height="24"
@@ -30,11 +39,65 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 					></path></svg
 				>
 			</a>
+			<button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false">
+				<svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<line x1="3" y1="6" x2="21" y2="6"/>
+					<line x1="3" y1="12" x2="21" y2="12"/>
+					<line x1="3" y1="18" x2="21" y2="18"/>
+				</svg>
+				<svg class="close-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<line x1="18" y1="6" x2="6" y2="18"/>
+					<line x1="6" y1="6" x2="18" y2="18"/>
+				</svg>
+			</button>
 		</div>
 	</nav>
 </header>
+
 <KeyboardShortcuts />
 <style>
+	.mobile-menu-toggle {
+        display: none;
+        background: none;
+        border: none;
+        color: var(--text);
+        cursor: pointer;
+        padding: 8px;
+    }
+
+    .close-icon {
+        display: none;
+    }
+
+    @media (max-width: 720px) {
+        .mobile-menu-toggle {
+            display: flex;
+        }
+
+        .nav-center {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            flex-direction: column;
+            background: var(--header-bg);
+            border-bottom: 1px solid var(--card-border);
+            padding: 1rem;
+            display: none;
+        }
+
+        .nav-center.open {
+            display: flex;
+        }
+
+        [aria-expanded="true"] .menu-icon {
+            display: none;
+        }
+
+        [aria-expanded="true"] .close-icon {
+            display: block;
+        }
+    }
 	.skip-link {
 		position: absolute;
 		top: -100%;
@@ -160,3 +223,14 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 		}
 	}
 </style>
+
+<script is:inline>
+    const toggle = document.getElementById('mobile-menu-toggle');
+    const navCenter = document.querySelector('.nav-center');
+    
+    toggle?.addEventListener('click', () => {
+        const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+        toggle.setAttribute('aria-expanded', !isExpanded);
+        navCenter?.classList.toggle('open');
+    });
+</script>

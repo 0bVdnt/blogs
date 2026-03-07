@@ -30,43 +30,40 @@ const scoredPosts = allPosts
 
 {scoredPosts.length > 0 && (
 	<aside class="related-posts">
-		<header class="related-header">
+		<div class="related-header">
 			<span class="related-icon">
 				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<circle cx="18" cy="5" r="3"/>
-					<circle cx="6" cy="12" r="3"/>
-					<circle cx="18" cy="19" r="3"/>
-					<line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-					<line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+					<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+					<path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
 				</svg>
 			</span>
-			<h3 class="related-title">Related Posts</h3>
-		</header>
-		<ul class="related-list">
-			{scoredPosts.map(({ post, score }) => (
-				<li>
-					<a href={`${basePath}${post.id}/`} class="related-link">
-						<div class="related-content">
-							<span class="related-date">
-								<FormattedDate date={post.data.pubDate} />
-							</span>
-							<h4 class="related-post-title">{post.data.title}</h4>
-						</div>
-						<span class="related-arrow">
-							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+			<span class="related-label">Related Posts</span>
+			<span class="related-count">{scoredPosts.length}</span>
+		</div>
+		<div class="related-list">
+			{scoredPosts.map(({ post }) => (
+				<a href={`${basePath}${post.id}/`} class="related-card">
+					<div class="related-card-body">
+						<span class="related-card-title">{post.data.title}</span>
+						{post.data.description && (
+							<p class="related-card-desc">{post.data.description}</p>
+						)}
+						<span class="related-card-date">
+							<FormattedDate date={post.data.pubDate} />
 						</span>
-					</a>
-				</li>
+					</div>
+					<span class="related-card-arrow">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+					</span>
+				</a>
 			))}
-		</ul>
+		</div>
 	</aside>
 )}
 
 <style>
 	.related-posts {
 		margin-top: 3rem;
-		background: var(--card-bg);
-		border: 1px solid var(--card-border);
 		border-radius: 12px;
 		overflow: hidden;
 	}
@@ -74,10 +71,8 @@ const scoredPosts = allPosts
 	.related-header {
 		display: flex;
 		align-items: center;
-		gap: 0.6em;
-		padding: 1rem 1.25rem;
-		background: var(--surface0);
-		border-bottom: 1px solid var(--card-border);
+		gap: 0.5em;
+		margin-bottom: 0.75rem;
 	}
 
 	.related-icon {
@@ -85,90 +80,108 @@ const scoredPosts = allPosts
 		color: var(--accent);
 	}
 
-	.related-title {
+	.related-label {
 		font-family: "JetBrains Mono", monospace;
 		font-size: 0.82em;
 		font-weight: 600;
 		color: var(--text);
-		margin: 0;
 		text-transform: uppercase;
 		letter-spacing: 0.03em;
 	}
 
-	.related-list {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-	}
-
-	.related-list li {
-		border-bottom: 1px solid var(--surface0);
-	}
-
-	.related-list li:last-child {
-		border-bottom: none;
-	}
-
-	.related-link {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
-		padding: 1rem 1.25rem;
-		text-decoration: none;
-		transition: background 0.15s ease;
-	}
-
-	.related-link:hover {
-		background: var(--surface0);
-		text-decoration: none;
-	}
-
-	.related-content {
-		flex: 1;
-		min-width: 0;
-	}
-
-	.related-date {
-		display: block;
+	.related-count {
 		font-family: "JetBrains Mono", monospace;
 		font-size: 0.7em;
-		color: var(--overlay1);
-		margin-bottom: 0.3em;
+		color: var(--base);
+		background: var(--accent);
+		padding: 0.1em 0.45em;
+		border-radius: 4px;
+		font-weight: 600;
 	}
 
-	.related-post-title {
+	.related-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.related-card {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		padding: 1rem 1.25rem;
+		background: var(--card-bg);
+		border: 1px solid var(--card-border);
+		border-left: 3px solid transparent;
+		border-radius: 10px;
+		text-decoration: none;
+		transition: all 0.15s ease;
+	}
+
+	.related-card:hover {
+		background: var(--surface0);
+		border-left-color: var(--accent);
+		text-decoration: none;
+	}
+
+	.related-card-body {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.2em;
+	}
+
+	.related-card-title {
 		font-family: "JetBrains Mono", monospace;
 		font-size: 0.9em;
-		font-weight: 500;
+		font-weight: 600;
 		color: var(--text);
-		margin: 0;
 		line-height: 1.4;
 		transition: color 0.15s ease;
 	}
 
-	.related-link:hover .related-post-title {
+	.related-card:hover .related-card-title {
 		color: var(--accent);
 	}
 
-	.related-arrow {
+	.related-card-desc {
+		font-size: 0.82em;
+		color: var(--subtext0);
+		margin: 0;
+		line-height: 1.4;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.related-card-date {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.7em;
+		color: var(--overlay1);
+		margin-top: 0.15em;
+	}
+
+	.related-card-arrow {
 		flex-shrink: 0;
 		color: var(--overlay0);
 		transition: all 0.15s ease;
 	}
 
-	.related-link:hover .related-arrow {
+	.related-card:hover .related-card-arrow {
 		color: var(--accent);
 		transform: translateX(2px);
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.related-link,
-		.related-arrow {
+		.related-card,
+		.related-card-arrow,
+		.related-card-title {
 			transition: none;
 		}
 
-		.related-link:hover .related-arrow {
+		.related-card:hover .related-card-arrow {
 			transform: none;
 		}
 	}
