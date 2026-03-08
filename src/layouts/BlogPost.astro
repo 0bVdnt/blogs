@@ -97,7 +97,7 @@ const fullUrl = new URL(Astro.url.pathname, Astro.site).toString();
 			main {
 				width: calc(100% - 2em);
 				max-width: 100%;
-				margin: 0;
+				margin: auto;
 			}
 
 			.back-link {
@@ -387,9 +387,9 @@ const fullUrl = new URL(Astro.url.pathname, Astro.site).toString();
 						<RelatedPosts currentPostId={postId} currentTags={tags} basePath={base} />
 					)}
 					
-					{postId && <PostMeta postId={postId} />}
-					
 					<PostNavigation prevPost={prevPost} nextPost={nextPost} basePath={basePath} />
+					
+					{postId && <PostMeta postId={postId} />}
 				</div>
 			</article>
 		</main>
