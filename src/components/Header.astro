@@ -75,6 +75,7 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
         }
 
         .nav-center {
+            display: none !important;
             position: absolute;
             top: 100%;
             left: 0;
@@ -83,11 +84,12 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
             background: var(--header-bg);
             border-bottom: 1px solid var(--card-border);
             padding: 1rem;
-            display: none;
+            z-index: 99;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
 
         .nav-center.open {
-            display: flex;
+            display: flex !important;
         }
 
         [aria-expanded="true"] .menu-icon {
@@ -122,9 +124,10 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 	}
 
 	header {
+		position: -webkit-sticky;
 		position: sticky;
 		top: 0;
-		z-index: 100;
+		z-index: 1000;
 		padding: 0 1.5em;
 		background: var(--header-bg);
 		backdrop-filter: blur(20px);
@@ -212,8 +215,8 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 			font-size: 0.9em;
 		}
 
-		.nav-center {
-			gap: 0;
+		.social-link {
+			display: none;
 		}
 	}
 
@@ -225,12 +228,33 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 </style>
 
 <script is:inline>
-    const toggle = document.getElementById('mobile-menu-toggle');
-    const navCenter = document.querySelector('.nav-center');
-    
-    toggle?.addEventListener('click', () => {
-        const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
-        toggle.setAttribute('aria-expanded', !isExpanded);
-        navCenter?.classList.toggle('open');
-    });
+	function initMobileMenu() {
+		const toggle = document.getElementById('mobile-menu-toggle');
+		const navCenter = document.querySelector('.nav-center');
+		const navLinks = navCenter?.querySelectorAll('a');
+		
+		if (!toggle || !navCenter) return;
+
+		// Clone and replace to prevent duplicate listeners
+		const newToggle = toggle.cloneNode(true);
+		toggle.parentNode?.replaceChild(newToggle, toggle);
+
+		function closeMenu() {
+			newToggle.setAttribute('aria-expanded', 'false');
+			navCenter.classList.remove('open');
+		}
+
+		newToggle.addEventListener('click', () => {
+			const isExpanded = newToggle.getAttribute('aria-expanded') === 'true';
+			newToggle.setAttribute('aria-expanded', !isExpanded);
+			navCenter.classList.toggle('open');
+		});
+
+		navLinks?.forEach(link => {
+			link.addEventListener('click', closeMenu);
+		});
+	}
+
+	initMobileMenu();
+	document.addEventListener('astro:page-load', initMobileMenu);
 </script>

@@ -41,6 +41,15 @@ const posts = allPosts
 	<head>
 		<BaseHead title={`#${tag} — ${SITE_TITLE}`} description={`Posts tagged with "${tag}"`} />
 		<style>
+			body {
+				display: flex;
+				flex-direction: column;
+				min-height: 100vh;
+			}
+			#main-content {
+				flex: 1;
+			}
+
 			.page-container {
 				max-width: 720px;
 				margin: 0 auto;

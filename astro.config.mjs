@@ -9,4 +9,12 @@ export default defineConfig({
 	site: 'https://0bVdnt.github.io',
 	base: '/blogs',
 	integrations: [mdx(), sitemap()],
+	markdown: {
+		shikiConfig: {
+			themes: {
+				light: 'vitesse-light',
+				dark: 'catppuccin-mocha'
+			}
+		}
+	}
 });

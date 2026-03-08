@@ -85,7 +85,14 @@ const fullUrl = new URL(Astro.url.pathname, Astro.site).toString();
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={title} description={description} />
+		<BaseHead 
+			title={title} 
+			description={description} 
+			type="article"
+			articleDate={pubDate}
+			updatedDate={displayUpdatedDate}
+			tags={tags}
+		/>
 		<style>
 			main {
 				width: calc(100% - 2em);
@@ -141,7 +148,7 @@ const fullUrl = new URL(Astro.url.pathname, Astro.site).toString();
 			}
 
 			.prose {
-				width: 720px;
+				width: 860px;
 				max-width: calc(100% - 2em);
 				margin: auto;
 				padding: 1em;
@@ -216,6 +223,14 @@ const fullUrl = new URL(Astro.url.pathname, Astro.site).toString();
 				background-clip: text;
 			}
 
+			.article-description {
+				font-size: 1.1em;
+				color: var(--subtext0);
+				margin: 0.5em auto 0;
+				max-width: 85%;
+				line-height: 1.6;
+			}
+
 			.article-tags {
 				display: flex;
 				justify-content: center;
@@ -274,6 +289,10 @@ const fullUrl = new URL(Astro.url.pathname, Astro.site).toString();
 
 			@media (max-width: 720px) {
 				.article-header h1 { font-size: 1.7em; }
+				.article-description { 
+					font-size: 1em; 
+					max-width: 100%; 
+				}
 				.hero-image { margin-bottom: 1em; }
 				.hero-image img { border-radius: 10px; }
 				
@@ -346,6 +365,7 @@ const fullUrl = new URL(Astro.url.pathname, Astro.site).toString();
 							)}
 						</div>
 						<h1>{title}</h1>
+						{description && <p class="article-description">{description}</p>}
 						{tags.length > 0 && (
 							<div class="article-tags">
 								<TagList tags={tags} basePath={base} size="md" />

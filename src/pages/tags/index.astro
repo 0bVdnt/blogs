@@ -33,6 +33,15 @@ const maxCount = Math.max(...Array.from(tagCounts.values()), 1);
 	<head>
 		<BaseHead title={`Tags — ${SITE_TITLE}`} description="Browse all tags" />
 		<style>
+			body {
+				display: flex;
+				flex-direction: column;
+				min-height: 100vh;
+			}
+			#main-content {
+				flex: 1;
+			}
+
 			.page-container {
 				max-width: 800px;
 				margin: 0 auto;

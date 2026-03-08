@@ -36,6 +36,7 @@
 	--card-hover-border: rgba(203, 166, 247, 0.4);
 	--header-bg: rgba(24, 24, 37, 0.8);
 	--code-bg: rgba(49, 50, 68, 0.6);
+	--code-text: var(--mauve);
 	--shadow-color: rgba(0, 0, 0, 0.3);
 	--glow-color: rgba(203, 166, 247, 0.15);
 }
@@ -77,6 +78,7 @@ html[data-theme="latte"] {
 	--card-hover-border: rgba(136, 57, 239, 0.4);
 	--header-bg: rgba(230, 233, 239, 0.85);
 	--code-bg: rgba(204, 208, 218, 0.5);
+	--code-text: #4c4f69;
 	--shadow-color: rgba(76, 79, 105, 0.08);
 	--glow-color: rgba(136, 57, 239, 0.1);
 }
@@ -121,13 +123,19 @@ body {
 	font-size: 17px;
 	line-height: 1.75;
 	transition: background-color 0.35s ease, color 0.35s ease;
+	position: relative;
+	min-height: 100vh;
+	min-height: -webkit-fill-available;
+	display: flex;
+	flex-direction: column;
 }
 
 main {
 	width: 780px;
-	max-width: calc(100% - 2em);
+	max-width: 100%;
 	margin: auto;
 	padding: 3em 1em;
+	flex: 1 0 auto;
 }
 
 /* ===== CRT Overlay ===== */
@@ -243,7 +251,7 @@ img {
 code {
 	padding: 2px 6px;
 	background-color: var(--code-bg);
-	color: var(--mauve);
+	color: var(--code-text);
 	border-radius: 6px;
 	font-family: "JetBrains Mono", "Fira Code", monospace;
 	font-size: 0.88em;
@@ -263,6 +271,17 @@ pre>code {
 	font-family: "JetBrains Mono", "Fira Code", monospace;
 	font-size: 0.88em;
 }
+
+/* Astro Shiki Dual Theme Support */
+html[data-theme="latte"] .astro-code {
+	background-color: var(--code-bg) !important;
+}
+
+html:not([data-theme="latte"]) .astro-code,
+html:not([data-theme="latte"]) .astro-code span {
+	color: var(--shiki-dark) !important;
+}
+
 
 blockquote {
 	border-left: 4px solid var(--accent);
