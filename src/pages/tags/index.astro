@@ -43,58 +43,52 @@ const maxCount = Math.max(...Array.from(tagCounts.values()), 1);
 			}
 
 			.page-container {
-				max-width: 800px;
-				margin: 0 auto;
+				width: 720px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 1em;
 			}
 
-			.page-nav {
-				margin-bottom: 2rem;
-			}
 
-			.back-link {
-				display: inline-flex;
-				align-items: center;
-				gap: 0.4em;
-				font-family: "JetBrains Mono", monospace;
-				font-size: 0.82em;
-				color: var(--subtext0);
-				text-decoration: none;
-				padding: 0.5em 0.9em;
-				border-radius: 8px;
-				border: 1px solid var(--surface0);
-				background: var(--card-bg);
-				transition: all 0.2s ease;
-			}
-
-			.back-link:hover {
-				color: var(--accent);
-				border-color: var(--accent);
-				background: var(--surface0);
-				text-decoration: none;
-			}
-
-			.back-link svg {
-				width: 14px;
-				height: 14px;
-			}
 
 			.page-header {
 				text-align: center;
-				margin-bottom: 3rem;
+				margin-bottom: 2.5em;
 				animation: fadeInUp 0.4s ease forwards;
 			}
 
-			.page-title {
-				font-family: "JetBrains Mono", monospace;
-				font-size: 2.2em;
-				font-weight: 700;
-				margin: 0 0 0.5em;
-				background: linear-gradient(135deg, var(--teal), var(--green), var(--blue));
+			.page-header h1 {
+				font-size: 2.4em;
+				margin: 0 0 0.3em;
+				background: linear-gradient(135deg, var(--mauve), var(--blue), var(--lavender));
 				background-size: 200% 200%;
 				-webkit-background-clip: text;
 				-webkit-text-fill-color: transparent;
 				background-clip: text;
 				animation: gradient-shift 6s ease infinite;
+			}
+
+			.page-header .page-label {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.5em;
+				font-family: "JetBrains Mono", monospace;
+				font-size: 0.78em;
+				color: var(--subtext0);
+				background: var(--card-bg);
+				padding: 0.35em 0.9em;
+				border-radius: 6px;
+				border: 1px solid var(--card-border);
+				backdrop-filter: blur(8px);
+				-webkit-backdrop-filter: blur(8px);
+				margin-bottom: 1em;
+			}
+
+			.page-label-dot {
+				width: 6px;
+				height: 6px;
+				border-radius: 50%;
+				background: var(--blue);
 			}
 
 			.page-subtitle {
@@ -215,16 +209,16 @@ const maxCount = Math.max(...Array.from(tagCounts.values()), 1);
 		<Header />
 		<main id="main-content">
 			<div class="page-container">
-				<nav class="page-nav">
-					<a href={base} class="back-link">
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-						cd ~/blogs
-					</a>
-				</nav>
+
 
 				<header class="page-header">
-					<h1 class="page-title">All Tags</h1>
+					<span class="page-label">
+						<span class="page-label-dot"></span>
+						~/blogs/tags
+					</span>
+					<h1>All Tags</h1>
 					<p class="page-subtitle">{sortedTags.length} {sortedTags.length === 1 ? 'tag' : 'tags'} across {posts.length} posts</p>
+					<hr style="margin-top: 1.5em;" />
 				</header>
 
 				{sortedTags.length === 0 ? (

@@ -63,6 +63,7 @@ const { prevPost, nextPost, basePath } = Astro.props;
 		padding: 1.25rem 1.5rem;
 		background: var(--card-bg);
 		border: 1px solid var(--card-border);
+		border-bottom: 2px dashed var(--surface1);
 		border-radius: 12px;
 		text-decoration: none;
 		transition: all 0.2s ease;
@@ -70,6 +71,7 @@ const { prevPost, nextPost, basePath } = Astro.props;
 
 	.post-nav-link:hover {
 		border-color: var(--card-hover-border);
+		border-bottom: 2px solid var(--accent);
 		background: var(--surface0);
 		transform: translateY(-2px);
 		box-shadow: 0 4px 16px var(--shadow-color);

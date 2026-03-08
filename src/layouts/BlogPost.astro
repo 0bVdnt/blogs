@@ -111,6 +111,7 @@ const fullUrl = new URL(Astro.url.pathname, Astro.site).toString();
 				padding: 0.5em 0.9em;
 				border-radius: 8px;
 				border: 1px solid var(--surface0);
+				border-bottom: 2px dashed var(--surface1);
 				background: var(--card-bg);
 				transition: all 0.2s ease;
 				margin-bottom: 2em;
@@ -119,6 +120,7 @@ const fullUrl = new URL(Astro.url.pathname, Astro.site).toString();
 			.back-link:hover {
 				color: var(--accent);
 				border-color: var(--accent);
+				border-bottom: 2px solid var(--accent);
 				background: var(--surface0);
 				text-decoration: none;
 			}

@@ -63,8 +63,11 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 
 	.search-modal {
 		position: fixed;
-		inset: 0;
-		z-index: 1000;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		z-index: 9999;
 		display: flex;
 		align-items: flex-start;
 		justify-content: center;
@@ -373,6 +376,15 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 		trigger.addEventListener('click', showModal);
 
 		modal.querySelector('.search-backdrop').addEventListener('click', hideModal);
+
+		// Handle clicks outside the modal specifically (clicking outside search dialog)
+		document.addEventListener('click', (e) => {
+			if (!modal.hidden && 
+				!e.target.closest('.search-dialog') && 
+				!e.target.closest('#search-trigger')) {
+				hideModal();
+			}
+		});
 
 		input.addEventListener('input', (e) => {
 			search(e.target.value);
