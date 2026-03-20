@@ -224,7 +224,7 @@ struct HazardPointerRegistry {
 
 Several subtleties attend the use of `thread_local` that merit careful consideration:
 
-| Aspect | Behaviour |
+| Aspect | Behavior |
 |--------|-----------|
 | **Initialization** | Block-scope `thread_local` variables undergo lazy initialization upon initial control-flow traversal. Namespace-scope variables are typically initialized at thread instantiation, prior to the execution of the thread's primary routine.|
 | **Destruction** | Object destruction occurs upon thread termination, strictly following a Last-In, First-Out (LIFO) protocol based on the completion sequence of their initialization. |
@@ -285,5 +285,359 @@ int main() {
 
 <small>
 <b>Note:</b> The programs above may output interleaved prints from different threads, for example: "Thread Thread 2Thread 3Thread 4 executing on hardware thread ..." since no synchronization is applied to `std::cout`. In production code, you would typically want to synchronize access to shared resources like `std::cout` to avoid such interleaving. However, the examples are intentionally simplified to focus on the concurrency primitives rather than I/O synchronization which will be covered in later sections.
+</small>
+
+---
+
+## 4. Mutual Exclusion, Synchronization Constructs and Thread-Safe Initialization
+
+When multiple threads of execution access shared mutable state, the absence of synchronization gives rise to **data races**—a form of undefined behavior under the C++ memory model. The standard library provides a graduated hierarchy of synchronization primitives to address this concern.
+
+### 4.1 Mutexes and RAII Lock Guards
+
+The fundamental mechanism for mutual exclusion is the `std::mutex`, which guarantees that at most one thread may hold ownership at any given time:
+```cpp
+#include <iostream>
+#include <thread>
+#include <mutex>
+#include <vector>
+
+std::mutex mtx;
+int shared_counter = 0;
+
+void increment(int iterations) {
+    for (int i = 0; i < iterations; i++) {
+        std::lock_guard<std::mutex> lock(mtx);
+        ++shared_counter;
+    }
+}
+
+int main() {
+    std::vector<std::jthread> threads;
+    for (int i = 0; i < 10; ++i)
+        threads.emplace_back(increment, 100'000);
+    
+    threads.clear(); // jthread destructor joins each thread
+
+    std::cout << "Counter = " << shared_counter << '\n';
+    // Deterministically yields 1,000,000
+}
+```
+
+The standard provides several RAII lock wrapper types, each suited to diverse usage patterns:
+
+| Lock Type          | Application Context |
+|--------------------|---------------------|
+| `std::lock_guard`  | Simple scoped mutual exclusion (C++11) |
+| `std::unique_lock` | Deferred locking, Ownership transfer, manual unlock/relock, or use with `std::condition_variable` |
+| `std::scoped_lock` | Simultaneous acquisition of **multiple** mutexes with deadlock avoidance (C++17) |
+| `std::shared_lock` | Read-side acquisition of a reader-writer mutex |
+
+### 4.2 Deadlock Avoidance via `std::scoped_lock` (C++17)
+
+A well-known pathology in concurrent programming arises when two or more threads each hold a lock and await the release of a lock held by the other—a condition known as **deadlock**. The `std::scoped_lock` class template, introduced in C++17, accepts an arbitrary number of mutex arguments and acquires them using a deadlock-avoidance algorithm (typically based on the try-and-back-off strategy).
+
+```cpp
+#include <mutex>
+
+std::mutex mtx1, mtx2;
+
+void safe_transfer() {
+    // Acquires both mutexes in a deadlock-safe manner
+    std::scoped_lock lock(mtx1, mtx2);
+    // ... perform transfer between accounts ...
+}
+```
+
+### 4.3 Reader-Writer Mutual Exclusion via `std::shared_mutex` (C++17)
+
+In workloads characterized by preponderance of read operations over write operations, a conventional mutex imposes unnecessary serialization among readers. The `std::shared_mutex` permits multiple concurrent readers while maintaining exclusive access for writers:
+
+```cpp
+#include <shared_mutex>
+#include <mutex>
+#include <map>
+#include <string>
+
+class ThreadSafeCache {
+    mutable std::shared_mutex _mtx;
+    std::map<std::string, std::string> _data;
+
+  public:
+    std::string read(const std::string &key) const {
+        std::shared_lock lock(_mtx); // Concurrent readers permitted
+        auto it = _data.find(key);
+        return (it != _data.end()) ? it->second : "";
+    }
+
+    void write(const std::string &key, const std::string &value) {
+        std::unique_lock lock(_mtx); // Exclusive access for writers
+        _data[key] = value;
+    }
+};
+```
+
+### 4.4 Condition Variables: Event-Driven Synchronization
+
+The `std::condition_variable` provides a mechanism by which a thread may suspend execution until a predicate over shared state becomes true, avoiding the inefficiency of busy-waiting. A canonical application is the implementation of a thread-safe bounded or unbounded queue:
+
+```cpp
+#include <iostream>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <queue>
+#include <syncstream>
+#include <stop_token>
+
+template <typename T>
+class ThreadSafeQueue {
+    std::queue<T> _queue;
+    mutable std::mutex _mtx;
+    std::condition_variable _cv;
+
+  public:
+    void push(T value) {
+        {
+            std::lock_guard lock(_mtx);
+            _queue.push(std::move(value));
+        }
+        _cv.notify_one(); // Notify one waiting consumer
+    }
+
+    T pop() {
+        std::unique_lock lock(_mtx);
+        _cv.wait(lock, [this] { return !_queue.empty(); }); // Wait until not empty
+        T value = std::move(_queue.front());
+        _queue.pop();
+        return value;
+    }
+};
+
+int main() {
+    ThreadSafeQueue<int> q;
+    
+    std::jthread producer([&](std::stop_token st) {
+        for (int i = 0; i < 10 && !st.stop_requested(); ++i) {
+            q.push(i);
+            std::osyncstream(std::cout) << "Produced: " << i << '\n';
+        }
+        q.push(-1); // sentinel value to signal termination
+    });
+
+    std::jthread consumer([&]() {
+        while (true) {
+            int val = q.pop();
+            if (val == -1)
+                break;
+            std::osyncstream(std::cout) << "Consumed: " << val << '\n';
+        }
+    });
+}
+```
+
+It is imperative to observe that `_cv.wait()` must always be invoked with a predicate to guard against **spurious wakeups**—a well-documented property of condition variable implementations across all major operating systems.
+
+### 4.5 Thread-Safe Initialization: `std::call_once` and Magic Statics (C++11)
+
+The Singleton pattern and lazy initialization of shared resources are notorious sources of race conditions in concurrent programs. The historically prevalent "Double-Checked Locking Pattern" (DCLP), widely deployed in pre-C++11 code, is in fact **broken** without explicit memory fence operations—a subtlety that eluded even experienced practitioners for many years. C++11 provides two robust mechanisms that render such fragile patterns unnecessary.
+
+#### 4.5.1 `std::call_once` and `std::once_flag`
+
+The `std::call_once` function guarantees that a callable is executed **exactly once** across all threads, regardless of how many threads concurrently attempt the initialization.
+
+```cpp
+#include <mutex>
+#include <memory>
+#include <iostream>
+#include <thread>
+#include <vector>
+#include <chrono>
+#include <string>
+#include <syncstream>
+
+class DatabaseConnection {
+  public:
+    DatabaseConnection() {
+        std::osyncstream(std::cout) << "Establishing database connection "
+                  << "(expensive operation)...\n";
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+
+    void query(const std::string &sql) {
+        std::osyncstream(std::cout) << "Executing query: " << sql << '\n';
+    }
+};
+
+class ConnectionPool {
+    std::once_flag _init_flag;
+    std::unique_ptr<DatabaseConnection> _connection;
+  public:
+    DatabaseConnection& get_connection() {
+        // Regardless of how many threads invoke this concurrently
+        // the initialization lambda executes exactly once.
+        // All other threads block until initialization completes.
+        std::call_once(_init_flag, [this] {
+            _connection = std::make_unique<DatabaseConnection>();
+        });
+        return *_connection;
+    }
+};
+
+int main() {
+    ConnectionPool pool;
+
+    std::vector<std::jthread> threads;
+    for (int i = 0; i < 8; ++i) {
+        threads.emplace_back([&pool, i] {
+            pool.get_connection().query("SELECT * FROM _table" + std::to_string(i)
+            );
+        });
+    }
+}
+```
+
+The `std::once_flag` object maintains the internal synchronization state. It is non-copyable, non-movable, and should typically reside as a member of the class governing the resource to be initialized.
+
+#### 4.5.2 Thread-Safe Block-Scope Statics ("Magic Statics")
+
+Perhaps even more consequentially, the C++11 standard mandated that the initialization of block-scope `static` variables must be performed in a **thread-safe** manner. This guarantee-colloquially referred to as "Magic Statics"—is enforced by the compiler, which emits the necessary synchronization instructions (typically a double-checked locking pattern implemented with acquire/release semantics or an equivalent mechanism) automatically:
+```cpp
+#include <iostream>
+#include <thread>
+#include <vector>
+#include <string>
+
+class Logger {
+  public:
+    Logger() {
+        std::cout << "Logger instance constructed (once, thread-safely)\n";
+    }
+
+    void log(const std::string &message) {
+        std::cout << "[LOG] " << message << '\n';
+    }
+};
+
+// The C++11 standard guarantees that this initialization is thread-safe.
+// If multiple threads invoke get_logger() concurrently,
+// exactly one performs the construction; all others block until it completes.
+Logger& get_logger() {
+    static Logger instance; // "Magic Static" - thread-safe by mandate
+    return instance;
+}
+
+int main() {
+    std::vector<std::jthread> threads;
+    for (int i = 0; i < 8; ++i) {
+        threads.emplace_back([i] {
+            get_logger().log("Message from thread " + std::to_string(i));
+        });
+    }
+}
+```
+
+This facility renders the Meyers Singleton pattern both **correct** and **trivially simple** in C++11 and beyond.
+There is no need for explicit mutex acquisition, `std::call_once`, or any manual synchronization whatsoever—the language guarantees correctness.
+
+**The distinction between the two mechanisms** may be summarized as follows:
+
+| Mechanism | Use Case | Reinvocable | Exception Behavior |
+|-----------|----------|-------------|--------------------|
+| `std::call_once` | Initialization of member variables, resources requiring explicit control | No (once flag is consumed) | If the callable throws, the flag is **not** set; another thread may retry |
+| Block-scope `static` | Singleton instances, function-local caches | No (initialized once per program lifetime) | If the constructor throws, initialization is reattempted on next entry |
+
+### 4.6 Latches, Barriers and Semaphores (C++20)
+
+C++20 introduced three higher-level synchronization primitives that encapsulate patterns previously requiring manual implementation:
+
+#### `std::latch`: One-Shot Countdown Synchronization
+
+A latch is a single-use synchronization primitive initialized with a counter. Threads decrement the counter upon arrival; when it reaches zero, all waiting threads are released.
+
+```cpp
+#include <iostream>
+#include <thread>
+#include <latch>
+#include <vector>
+
+void latch_example() {
+    constexpr int N = 5;
+    std::latch startup_latch(N);
+
+    auto worker = [&](int id) {
+        // ... perform initialization work ...
+        std::cout << "Worker " << id << " initialization complete\n";
+        startup_latch.arrive_and_wait(); // Decrement latch and wait for others
+        std::cout << "Worker " << id << " proceeding with main computation\n";
+    };
+
+    std::vector<std::jthread> threads;
+    for (int i = 0; i < N; ++i)
+        threads.emplace_back(worker, i);
+}
+```
+
+#### `std::barrier`: Reusable Phase Synchronization
+
+A barrier generalizes the latch to support multiple phases. After all participants arrive at the barrier, an optional completion function is invoked, and the barrier resets for the subsequent phase.
+
+```cpp
+#include <iostream>
+#include <thread>
+#include <barrier>
+#include <vector>
+
+void barrier_example() {
+    constexpr int N = 4;
+    auto on_phase_complete = []() noexcept {
+        std::cout << "--- Phase boundary reached ---\n";
+    };
+
+    std::barrier sync_point(N, on_phase_complete);
+
+    auto worker = [&] (int id) {
+        for (int phase = 0; phase < 3; ++phase) {
+            std::cout << "Worker " << id
+                      << " executing phase " << phase << '\n';
+            sync_point.arrive_and_wait(); // Wait for all workers to complete phase
+        }
+    };
+
+    std::vector<std::jthread> threads;
+    for (int i = 0; i < N; i++)
+        threads.emplace_back(worker, i);
+}
+```
+
+#### `std::counting_semaphore`: Bounded Concurrent Access
+
+A counting semaphore limits the number of threads that may concurrently access a resource. This is particularly applicable to connection pool management, rate-limiting, and bounded producer-consumer scenarios.
+
+```cpp
+#include <iostream>
+#include <thread>
+#include <semaphore>
+#include <vector>
+#include <chrono>
+
+void semaphore_example() {
+    std::counting_semaphore<3> sem(3); // Maximum three concurrent acquisitions
+
+    auto limited_worker = [&sem](int id) {
+        sem.acquire(); // Wait for an available slot
+        std::cout << "Worker " << id
+                  << " entered critical section\n";
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::cout << "Worker " << id
+                  << " departing the critical section\n";
+        sem.release(); // Release the slot
+    };
+
+    std::vector<std::jthread> threads;
+    for (int i = 0; i < 10; ++i)
+        threads.emplace_back(limited_worker, i);
+}
+```
 
 ---
