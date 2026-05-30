@@ -1,9 +1,10 @@
 ---
-title: "Chasing the Billionth Prime in Bare-Metal LLVM"
-description: "How to calculate the 23.7 Billionth prime in 1 second using bare-metal LLVM IR. A deep dive into analytic number theory, Lehmer’s formula, Fibonacci hashing, L3 cache pinning, and extreme algorithmic optimization."
+title: "Beyond the Billionth Prime: Pushing Bare-Metal LLVM to the Limit"
+description: "Bypassing libc, memory bottlenecks, and linear sieves. A deep dive into analytic number theory, Lehmer’s formula, and L3 cache pinning in handwritten LLVM IR."
 pubDate: "May 30 2026"
 tags:
   [
+    "number-theory",
     "prime-numbers",
     "llvm",
     "llvm-ir",
@@ -13,6 +14,9 @@ tags:
     "bare-metal",
     "optimization-algorithms",
     "dynamic-programming",
+    "algorithms",
+    "performance",
+    "assembly",
   ]
 ---
 
@@ -685,6 +689,13 @@ At scale, this theoretical difference is massive. While Legendre's combinatorial
 | **$\phi$ recursion depth**   | $a = \pi(x^{1/2})$ — deeper tree, harder to memoize effectively                                                                     | $a = \pi(x^{1/4})$ — shallower tree, memoization far more effective                            |
 
 The scanning phase difference is the one that shows up most viscerally in benchmarks. Legendre's `lower_bound` is deliberately conservative — it undershoots so it never misses the answer — which means the scanning phase has to cover a larger gap. Lehmer's formula, called once on a precisely targeted $\hat{x} - \text{margin}$, returns an exact count, and Phase 3 scans only the $\approx 11$ MB window between that baseline and the answer.
+
+### Algorithmic Performance Scaling Comparison
+![Performance Scaling, linear and log-log plots](../../assets/plot.png)
+
+**The Linear Scale (Left):** On a standard linear axis scaled to the final 23.76 Billion target, the other algorithms are almost crushed against the Y-axis. This is because the traditional sieves and Legendre's formula hit the 1.0 second mark in the low millions.
+
+**The Log-Log Scale (Right):** To actually see the mathematical scaling, we use a Log-Log plot, where polynomial time complexities map to straight lines. At the 1.0-second ceiling, the Lehmer curve sits nearly two full orders of magnitude to the right of Legendre's sieve algorithm.
 
 ### What the wheel buys — and what it doesn't
 
