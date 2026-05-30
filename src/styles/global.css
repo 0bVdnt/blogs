@@ -306,6 +306,53 @@ hr {
 	opacity: 0.4;
 }
 
+/* ===== KaTeX Math ===== */
+.katex-mathml {
+	position: absolute;
+	clip: rect(1px, 1px, 1px, 1px);
+	padding: 0;
+	border: 0;
+	height: 1px;
+	width: 1px;
+	overflow: hidden;
+}
+
+.katex-display {
+	overflow-x: auto;
+	overflow-y: hidden;
+	padding: 1em 0;
+	margin: 1.5em 0;
+	-webkit-overflow-scrolling: touch;
+	text-align: center;
+}
+
+.katex-display > .katex {
+	white-space: nowrap;
+	display: inline-block;
+	text-align: center;
+}
+
+.katex {
+	font-size: 1.1em;
+	color: var(--text);
+}
+
+.katex-display > .katex {
+	font-size: 1.21em;
+}
+
+/* Ensure KaTeX colors follow the theme */
+.katex .mord,
+.katex .mop,
+.katex .mbin,
+.katex .mrel,
+.katex .mopen,
+.katex .mclose,
+.katex .mpunct,
+.katex .minner {
+	color: var(--text);
+}
+
 /* ===== Animations ===== */
 @keyframes fadeInUp {
 	from {
@@ -517,4 +564,15 @@ h4:target {
 		padding-left: 8px;
 		margin-left: -8px;
 	}
+}
+/* Center block math parsed as inline math wrapped in a paragraph */
+p:has(> .katex:only-child) {
+	text-align: center;
+	margin: 1.5em 0;
+	overflow-x: auto;
+	overflow-y: hidden;
+}
+p:has(> .katex:only-child) > .katex {
+	font-size: 1.21em;
+	display: inline-block;
 }

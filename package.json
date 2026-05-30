@@ -9,10 +9,15 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/mdx": "^5.0.0",
+    "@astrojs/check": "^0.9.9",
+    "@astrojs/mdx": "^6.0.1",
     "@astrojs/rss": "^4.0.17",
     "@astrojs/sitemap": "^3.7.1",
     "astro": "^6.0.4",
-    "sharp": "^0.34.3"
+    "jsdom": "^29.1.1",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0",
+    "sharp": "^0.34.3",
+    "typescript": "^6.0.3"
   }
 }
