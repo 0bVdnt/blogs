@@ -3,22 +3,376 @@ import Layout from '../layouts/Page.astro';
 ---
 
 <Layout
-	title="About Me"
-	description="About 0bVdnt — systems enthusiast and full-stack developer."
+	title="About — Vedant Neve"
+	description="About Vedant Neve (0bVdnt) — LLVM contributor, compiler engineer, systems programmer, and CS undergrad building things from first principles."
 >
-	<p>
-		Hi, I'm <strong>0bVdnt</strong> — a systems enthusiast and full-stack developer. I built this
-		<a href="https://0bVdnt.github.io/">interactive OS portfolio</a> to showcase my work
-		in a way that feels alive and engaging.
-	</p>
+	<div class="about-hero">
+		<div class="about-terminal">
+			<div class="about-terminal-bar">
+				<span class="dot red"></span>
+				<span class="dot yellow"></span>
+				<span class="dot green"></span>
+				<span class="about-terminal-title">~/blogs/about</span>
+			</div>
+			<div class="about-terminal-body">
+				<div class="about-prompt"><span class="prompt-symbol">$</span> cat /etc/vedant.conf</div>
+				<div class="about-output">
+					<div class="about-field"><span class="field-key">name</span> <span class="field-eq">=</span> <span class="field-val">"Vedant Neve"</span></div>
+					<div class="about-field"><span class="field-key">handle</span> <span class="field-eq">=</span> <span class="field-val">"0bVdnt"</span></div>
+					<div class="about-field"><span class="field-key">location</span> <span class="field-eq">=</span> <span class="field-val">"Pune, India"</span></div>
+					<div class="about-field"><span class="field-key">affiliation</span> <span class="field-eq">=</span> <span class="field-val">"CS Undergrad @ SPPU (CGPA: 9.6/10)"</span></div>
+					<div class="about-field"><span class="field-key">domains</span> <span class="field-eq">=</span> <span class="field-val">["Compilers", "Systems", "GPU Compute", "AI/ML", "Mathematics"]</span></div>
+					<div class="about-field"><span class="field-key">leetcode</span> <span class="field-eq">=</span> <span class="field-val">"Knight"</span></div>
+				</div>
+			</div>
+		</div>
+	</div>
 
-	<p>
-		This blog is an extension of that portfolio, where I document my journey through
-		software engineering, system architecture, and web development. Expect technical
-		deep-dives, project breakdowns, and explorations into performance and design.
-	</p>
+	<section class="about-section">
+		<h2 class="section-title"><span class="section-icon">👋</span> Who am I?</h2>
+		<p>
+			I'm <strong>Vedant</strong> — I want to learn everything about everything.
+			I build things that make me go <em>"Huh, that's interesting!"</em> and <em>"Wow, I didn't know that was possible!"</em>,
+			and then I write about them here.
+			I have a soft spot for compilers, low-level programming, GPU graphics, and performance optimization —
+			and I'm always up for exploring new domains and technologies.
+		</p>
+		<p>
+			My primary focus is on compiler engineering — I'm an active
+			<a href="https://github.com/llvm/llvm-project" target="_blank" rel="noopener noreferrer">LLVM</a> contributor,
+			working on things like GVN optimizations, SelectionDAG pattern matchers for funnel shifts,
+			and libc refactors. My research interests revolve around compiler optimizations, program transformations,
+			static analysis, LLVM pass infrastructure, parallelizing compilers, and IR-level code generation.
+			I'm currently exploring source-level CUDA↔ROCm transpilation for portable GPU compute.
+		</p>
+		<p>
+			On the projects side, I've built
+			<a href="https://github.com/0bVdnt/chakravyuha" target="_blank" rel="noopener noreferrer">Chakravyuha</a> — an LLVM-based code obfuscation framework with control flow flattening, polymorphic string encryption, and dead code injection;
+			<a href="https://github.com/0bVdnt/obvcc" target="_blank" rel="noopener noreferrer">obvcc</a> — a multi-language C compiler (Rust lexer + OCaml parser → x86-64 assembly);
+			<a href="https://github.com/0bVdnt/raylib_cuda" target="_blank" rel="noopener noreferrer">Raylib-CUDA</a> — a zero-copy GPU compute interop library using OpenGL DMA;
+			and <a href="https://github.com/0bVdnt/obv-os" target="_blank" rel="noopener noreferrer">obv-OS</a> — an operating system from scratch. I also dabble in
+			<a href="https://github.com/0bVdnt/http-c" target="_blank" rel="noopener noreferrer">HTTP servers in pure C</a>,
+			<a href="https://github.com/0bVdnt/pixlgo" target="_blank" rel="noopener noreferrer">terminal media players in Go</a>,
+			and <a href="https://github.com/0bVdnt/game-of-life-webassembly" target="_blank" rel="noopener noreferrer">WebAssembly experiments</a>.
+		</p>
+		<p>
+			I lead the Competitive Coding Club at my college and co-lead the DSA & CP track for
+			Google Developers Group on campus — organizing ICPC-style contests and leading technical sessions
+			on algorithms and data structures.
+		</p>
+	</section>
 
-	<p>
-		Find me on <a href="https://github.com/0bVdnt" target="_blank" rel="noopener noreferrer">GitHub</a>.
-	</p>
+	<section class="about-section">
+		<h2 class="section-title"><span class="section-icon">⚡</span> Tech Stack</h2>
+		<div class="tech-grid">
+			<div class="tech-category">
+				<h4>Languages</h4>
+				<div class="tech-pills">
+					<span class="tech-pill">C++</span>
+					<span class="tech-pill">C</span>
+					<span class="tech-pill">Rust</span>
+					<span class="tech-pill">Go</span>
+					<span class="tech-pill">Python</span>
+					<span class="tech-pill">OCaml</span>
+					<span class="tech-pill">TypeScript</span>
+					<span class="tech-pill">Bash</span>
+					<span class="tech-pill">SQL</span>
+				</div>
+			</div>
+			<div class="tech-category">
+				<h4>Compilers & Systems</h4>
+				<div class="tech-pills">
+					<span class="tech-pill">LLVM/Clang</span>
+					<span class="tech-pill">GCC</span>
+					<span class="tech-pill">CUDA</span>
+					<span class="tech-pill">POSIX</span>
+					<span class="tech-pill">OpenGL</span>
+					<span class="tech-pill">WebAssembly</span>
+				</div>
+			</div>
+			<div class="tech-category">
+				<h4>Build & Debug</h4>
+				<div class="tech-pills">
+					<span class="tech-pill">CMake</span>
+					<span class="tech-pill">Bazel</span>
+					<span class="tech-pill">Cargo</span>
+					<span class="tech-pill">GDB</span>
+					<span class="tech-pill">Valgrind</span>
+					<span class="tech-pill">QEMU</span>
+					<span class="tech-pill">Docker</span>
+				</div>
+			</div>
+			<div class="tech-category">
+				<h4>AI / ML</h4>
+				<div class="tech-pills">
+					<span class="tech-pill">PyTorch</span>
+					<span class="tech-pill">TensorFlow</span>
+					<span class="tech-pill">Keras</span>
+					<span class="tech-pill">NumPy</span>
+					<span class="tech-pill">Pandas</span>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="about-section philosophy">
+		<blockquote>
+			"To truly understand something, you must build it from the first principles up, and then break it down to its core components, and then put it back together again in a way that is uniquely your own."
+		</blockquote>
+	</section>
+
+	<section class="about-section connect-section">
+		<h2 class="section-title"><span class="section-icon">🔗</span> Connect</h2>
+		<div class="connect-links">
+			<a href="https://github.com/0bVdnt" target="_blank" rel="noopener noreferrer" class="connect-link">
+				<svg viewBox="0 0 16 16" width="20" height="20"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+				GitHub
+			</a>
+			<a href="https://linkedin.com/in/vedantneve" target="_blank" rel="noopener noreferrer" class="connect-link">
+				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+				LinkedIn
+			</a>
+			<a href="mailto:vedantneve13@gmail.com" class="connect-link">
+				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+				Email
+			</a>
+		</div>
+	</section>
 </Layout>
+
+<style>
+	/* ===== About Hero Terminal ===== */
+	.about-hero {
+		margin-bottom: 3rem;
+	}
+
+	.about-terminal {
+		border-radius: 12px;
+		border: 1px solid var(--surface2);
+		background: var(--crust);
+		box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+		overflow: hidden;
+		animation: fadeInUp 0.5s ease forwards;
+	}
+
+	.about-terminal-bar {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 12px 16px;
+		background: var(--mantle);
+		border-bottom: 1px solid var(--surface1);
+	}
+
+	.dot {
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+		box-shadow: inset 0 1px 2px rgba(0,0,0,0.4);
+	}
+
+	.dot.red { background: var(--red); }
+	.dot.yellow { background: var(--yellow); }
+	.dot.green { background: var(--green); }
+
+	.about-terminal-title {
+		flex: 1;
+		text-align: center;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.75em;
+		color: var(--overlay1);
+		margin-right: 56px;
+		font-weight: 600;
+	}
+
+	.about-terminal-body {
+		padding: 1.5rem 2rem;
+	}
+
+	.about-prompt {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.9em;
+		color: var(--subtext0);
+		margin-bottom: 1em;
+	}
+
+	.prompt-symbol {
+		color: var(--green);
+		font-weight: 700;
+	}
+
+	.about-output {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4em;
+	}
+
+	.about-field {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.85em;
+	}
+
+	.field-key { color: var(--blue); }
+	.field-eq { color: var(--overlay1); }
+	.field-val { color: var(--green); }
+
+	/* ===== Sections ===== */
+	.about-section {
+		margin-bottom: 3rem;
+	}
+
+	.section-title {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 1.4em;
+		font-weight: 700;
+		color: var(--text);
+		margin-bottom: 1.25rem;
+		display: flex;
+		align-items: center;
+		gap: 0.5em;
+	}
+
+	.section-icon {
+		font-size: 0.9em;
+	}
+
+	.about-section p {
+		color: var(--subtext0);
+		line-height: 1.8;
+		font-size: 1.02em;
+	}
+
+	.about-section p strong {
+		color: var(--text);
+		-webkit-text-fill-color: var(--text);
+	}
+
+	.about-section p em {
+		color: var(--mauve);
+		font-style: italic;
+	}
+
+	.about-section p a {
+		color: var(--accent);
+		text-decoration: none;
+		border-bottom: 1px dashed var(--accent);
+		transition: border-color 0.2s ease;
+	}
+
+	.about-section p a:hover {
+		border-bottom-style: solid;
+	}
+
+	/* ===== Tech Stack ===== */
+	.tech-grid {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	.tech-category h4 {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.85em;
+		font-weight: 600;
+		color: var(--overlay1);
+		margin: 0 0 0.5rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.tech-pills {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+	}
+
+	.tech-pill {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.75em;
+		padding: 0.3em 0.7em;
+		border-radius: 6px;
+		background: var(--surface0);
+		color: var(--subtext1);
+		border: 1px solid var(--surface1);
+		transition: all 0.2s ease;
+	}
+
+	.tech-pill:hover {
+		background: var(--surface1);
+		color: var(--text);
+		border-color: var(--surface2);
+	}
+
+	/* ===== Philosophy ===== */
+	.philosophy blockquote {
+		font-size: 1.05em;
+		line-height: 1.7;
+		font-style: italic;
+		color: var(--subtext1);
+		border-left: 4px solid var(--mauve);
+		padding: 1.25em 1.5em;
+		background: var(--card-bg);
+		border-radius: 0 12px 12px 0;
+		margin: 0;
+	}
+
+	/* ===== Connect ===== */
+	.connect-links {
+		display: flex;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.connect-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5em;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.88em;
+		padding: 0.6em 1.2em;
+		border-radius: 8px;
+		background: var(--card-bg);
+		border: 1px solid var(--card-border);
+		color: var(--subtext1) !important;
+		text-decoration: none !important;
+		transition: all 0.2s ease;
+	}
+
+	.connect-link:hover {
+		border-color: var(--accent);
+		color: var(--accent) !important;
+		transform: translateY(-2px);
+		box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+	}
+
+	/* ===== Responsive ===== */
+	@media (max-width: 720px) {
+		.about-terminal-body {
+			padding: 1rem 1.25rem;
+		}
+
+		.connect-links {
+			flex-direction: column;
+		}
+
+		.connect-link {
+			justify-content: center;
+		}
+	}
+
+	/* ===== Reduced Motion ===== */
+	@media (prefers-reduced-motion: reduce) {
+		.about-terminal {
+			animation: none;
+		}
+
+		.tech-pill,
+		.connect-link {
+			transition: none !important;
+		}
+
+		.connect-link:hover {
+			transform: none !important;
+		}
+	}
+</style>

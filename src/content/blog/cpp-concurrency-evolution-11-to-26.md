@@ -641,3 +641,164 @@ void semaphore_example() {
 ```
 
 ---
+
+## 5. Deferred Computation: Futures, Promises, and Asynchronous Launch
+
+### 5.1 `std::async` and `std::future`
+
+The `std::async` facility provides the most concise mechanism for offloading a computation and subsequently retrieving its result. The returned `std::future` object serves as a handle to the deferred result:
+```cpp
+#include <iostream>
+#include <future>
+#include <vector>
+#include <numeric>
+
+long long parallel_sum(const std::vector<int>& data) {
+    auto mid = data.begin() + data.size() / 2;
+
+    auto future_sum = std::async(std::launch::async, [&] {
+        return std::accumulate(data.begin(), mid, 0LL);
+    });
+
+    long long second_half = std::accumulate(mid, data.end(), 0LL);
+
+    return future_sum.get() + second_half; // Waits for the async task to complete
+}
+
+int main() {
+    std::vector<int> data(100'000'000, 1);
+    std::cout << "Sum = " << parallel_sum(data) << '\n';
+}
+```
+
+It is pertinent to observe that the `std::launch::async` policy guarantees execution on a new thread, whereas `std::launch::deferred` defers execution until `.get()` or `.wait()` is invoked. When neither policy is specified, the implementation is permitted to select either strategy—a source of non-determinism that has attracted considerable criticism in the literature.
+
+### 5.2 `std::shared_future`: Multiple Consumers of a single Asynchronous Result. (C++11)
+
+A critical and frequently overlooked distinction within the futures-and-promises taxonomy concerns the **consumption semantics** of `std::future`. The `std::future` class is strictly **move-only** and **single-use**: invoking `.get()` transfers ownership of the result, rendering subsequent invocations undefined behavior. This design reflects the single-consumer model but proves inadequate when multiple threads must await the same asynchronous result-a common **fan-out broadcast** pattern.
+
+The `std::shared_future` class, also introduced in C++11, addresses this requirement. It is **copyable**, and multiple copies may concurrently invoke `.get()` on the same shared state, each receiving a const reference to the result:
+
+```cpp
+#include <iostream>
+#include <future>
+#include <vector>
+#include <thread>
+
+// Simulate an expensive one-time computation whose result must be consumed by multiple downstream threads.
+std::shared_future<int> load_configuration() {
+    // std::async return std::future; .share() converts to shared_future
+    return std::async(std::launch::async, [] {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        return std::string("database_url=postgres://prod-server/mydb;"
+        "pool_size=64;"
+        "timeout=30s");
+    }).share();
+}
+
+void worker(int id, std::shared_future<std::string> config_future) {
+    // All workers block here until the single computation completes.
+    // Each revieves a const reference to the same result
+    const std::string& config = config_future.get();
+
+    std::cout << "Worker" << id
+              << " received config (length): " << config.size() << '\n';
+    // ... proceed with thread-specific work using the shared config ...
+}
+
+int main() {
+    // Launch the configuration load once
+    auto shared_config = load_configuration();
+
+    // Distribute the shared_future to multiple consumers
+    std::vector<std::jthread> workers;
+    for (int i = 0; i < 8; ++i) {
+        workers.emplace_back(worker, i, shared_config);
+        // Copies are safe
+    }
+    // All 8 workers share the same underlying asynchronous result.
+    // The configuration is computed exactly once.
+}
+```
+
+#### Semantic Distinction: `std::future` vs `std::shared_future`
+
+```
+std::future (single consumer):
+
+Producer ----- set_value() ----> Shared State ----> get() ----> Consumer (result moved out; future is invalidated)
+
+std::shared_future (multiple consumers):
+Producer ----- set_value() ----> Shared State 
+                                    |---> get() ----> Consumer 1 (const ref to result)
+                                    |
+                                    |----> get() ----> Consumer 2 (const ref to same result)
+                                    |
+                                    ...
+                                    |----> get() ----> Consumer N (const ref to same result)
+                                    (const ref; state remains valid)
+```
+
+| Characteristic | `std::future<T>` | `std::shared_future<T>` |
+|----------------|------------------|------------------------|
+| Copyability | No (move-only) | Yes |
+| `.get()` invocation | Exactly once; moves the result | Multiple times; returns const T& |
+| Thread safety of `.get()` | Not safe to call from multiple threads | Safe to call concurrently from multiple threads |
+| Conversion | `.share()` -> `std::shared_future` | N/A |
+| Typical use case | Single consumer, task chaining | Fan-out broadcast, shared configuration, barrier-like synchronization |
+
+#### Integrated with `std::promise`
+
+The `std::shared_future` pattern composes naturally with `std::promise` for manual inter-thread signalling to multiple waiters:
+
+```cpp
+#include <future>
+#include <thread>
+#include <vector>
+#include <iostream>
+
+int main() {
+    std::promise<int> signal;
+    std::shared_future<int> broadcast = signal.get_future().share();
+
+    // Multiple consumer threads, each awaiting the same signal
+    std::vector<std::jthread> consumers;
+    for (int i = 0; i < 4; ++i) {
+        consumers.emplace_back([i, broadcast] {
+            int value = broadcast.get(); // blocks until promise is fulfilled
+            std::cout << "Consumer " << i
+                      << " received broadcast value: " << 
+                      value << '\n';
+        });
+    }
+
+    // Producer fulfils the promise once; all consumers unblock
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    signal.set_value(42); // All consumers receive the same value
+}
+```
+
+This pattern is functionally analogous to a `std::latch` with an associated payload—a one-shot barrier that also delivers data to all waiting participants.
+
+### 5.3 `std::promise` and `std::future`: Explicit Inter-Thread Communication Channels
+
+While `std::async` binds together the initiation of asynchronous work and the retrieval of its result, the `std::promise` and `std::future` decouples these concerns, offering lower-level mechanism to explicitly establish a one-shot communication channel between threads.
+
+```cpp
+#include <iostream>
+#include <future>
+#include <thread>
+
+int main() {
+    std::promise<std::string> promise;
+    std::future<std::string> future = promise.get_future();
+
+    std::jthread t([&promise] {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        promise.set_value("Result transmitted from producer thread");
+    });
+    
+    // The following invocation blocks until the promise is fulfilled
+    std::cout << future.get() << '\n'; 
+}
+```
